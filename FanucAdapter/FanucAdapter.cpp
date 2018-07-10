@@ -41,6 +41,7 @@ void FanucAdapter::startConnections()
     }
     if (!flag)
         throw std::exception("can't connect ot server");
+
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
