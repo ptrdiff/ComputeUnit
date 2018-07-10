@@ -3,6 +3,23 @@
 #include <array>
 #include <iostream>
 #include <QCoreApplication>
+#include <string>
+#include <vector>
+
+std::vector<std::string> split(const std::string &str, const std::string &delim)
+{
+    const auto delim_pos = str.find(delim);
+
+    if (delim_pos == std::string::npos)
+        return {str};
+
+    std::vector<std::string> ret{str.substr(0, delim_pos)};
+    auto tail = split(str.substr(delim_pos + delim.size(), std::string::npos), delim);
+
+    ret.insert(ret.end(), tail.begin(), tail.end());
+
+    return ret;
+}
 
 RCAConnector::RCAConnector(int port, QObject* parent) :
 QObject(parent),
@@ -14,12 +31,14 @@ _socket(std::make_unique<QTcpServer>(this))
 
 void RCAConnector::launch()
 {
+    std::cout << "RCAConnector::launch()" <<std::endl;
     _socket->listen(QHostAddress::AnyIPv4, _port);
 }
 
 void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w, double p,
     double r)
 {
+    std::cout << "RCAConnector::slotToSendCubePosition" <<std::endl;
     std::stringstream str;
     str << "a " << x << ' ' << y << ' ' << z << ' ' << w << ' ' << p << ' ' << r;
     std::cout << "answer to client:" << str.str() << std::endl;
@@ -29,6 +48,7 @@ void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w
 void RCAConnector::slotToSendCurrentRobotPostion(double j1, double j2, double j3, double j4,
     double j5, double j6)
 {
+    std::cout << "RCAConnector::slotToSendCurrentRobotPostion" <<std::endl;
     std::stringstream str;
     str << "r " << j1 << ' ' << j2 << ' ' << j3 << ' ' << j4 << ' ' << j5 << ' ' << j6;
     std::cout << "answer to client:" << str.str() << std::endl;
@@ -37,6 +57,7 @@ void RCAConnector::slotToSendCurrentRobotPostion(double j1, double j2, double j3
 
 void RCAConnector::slotMakeNewConnection()
 {
+    std::cout << "RCAConnector::slotMakeNewConnection()" << std::endl;
     std::cout << "new client connected!" << std::endl;
 
     _clientSocket = _socket->nextPendingConnection();
@@ -47,6 +68,7 @@ void RCAConnector::slotMakeNewConnection()
 
 void RCAConnector::slotReadFromClient()
 {
+    std::cout << "RCAConnector::slotReadFromClient()" << std::endl;
     _prevData += _clientSocket->readAll().toStdString();
 
     std::cout << "From client was recieved:" << _prevData <<'|' << std::endl;
@@ -66,51 +88,23 @@ void RCAConnector::slotReadFromClient()
         }
         else if (_prevData[0] == 'm')
         {
-            std::array<double, 6> coords{};
-            size_t pos = 2;
-            int param = -1;
-            bool flag1 = true;
-            for (int i = 0;i < 6;++i)
-            {
-                flag1 = true;
-                coords[i] = atof(_prevData.substr(pos).c_str());
-                if (coords[i] == 0.)
-                    flag1 = false;
-                while (pos < _prevData.size() && _prevData[pos] != ' ' &&
-                    (flag1 || _prevData[pos] == '0' || _prevData[pos] == '-' ||
-                        _prevData[pos] == '.' || _prevData[pos] == ','))
-                    ++pos;
-                if (pos == _prevData.size() || _prevData[pos] != ' ')
-                {
-                    flag = false;
-                    break;
-                }
-                ++pos;
-            }
-            if (pos + 1 < _prevData.size() && _prevData[pos] >= '0' && _prevData[pos] <= '9')
-            {
-                param = _prevData[pos] - '0';
-                pos += 2;
-            }
-            if (flag)
-            {
-                emit signalToMoveRobot(coords[0], coords[1], coords[2], coords[3], coords[4],
-                    coords[5], param);
-                std::cout << "was parsed: ";
-                for (auto elem : coords)
-                    std::cout << elem << ' ';
-                std::cout << param << std::endl;
-
-                _prevData = _prevData.substr(pos);
-                pos = 0;
-            }
+            auto splitString = split(_prevData," ");
+            emit signalToMoveRobot(atof(splitString[1].c_str()),
+                                   atof(splitString[2].c_str()),
+                                   atof(splitString[3].c_str()),
+                                   atof(splitString[4].c_str()),
+                                   atof(splitString[5].c_str()),
+                                   atof(splitString[6].c_str()),
+                                   atoi(splitString[7].c_str()));
+            break;
         }
     }
-
+    // todo: rewrite it later
     _prevData = "";
 }
 
 void RCAConnector::slotClientDisconnected()
 {
+    std::cout << "RCAConnector::slotClientDisconnected()" << std::endl;
     _clientSocket->close();
 }

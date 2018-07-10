@@ -17,8 +17,10 @@ void SensorAdapter::slotToFindCube(double j1, double j2, double j3, double j4, d
     try
     {
         auto tmp = _cvs.getMarkerPose(std::array<double, 6>{j1, j2, j3, j4, j5, j6});
-        if(tmp[0]!=0 && tmp[1] != 0 && tmp[2] != 0 )
-        emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0);
+        if(tmp[0]!=0 && tmp[1] != 0 && tmp[2] != 0 ) {
+            std::cout << "emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0)" <<std::endl;
+            emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0);
+        }
     }
     catch(...)
     {

@@ -20,12 +20,11 @@ _serverIP(std::move(serverIP))
 
     connect(_socket.get(), &QTcpSocket::disconnected, this, &FanucAdapter::slotServerDisconnected,
         Qt::QueuedConnection);
-
-    //std::cout<<"Fanuc Apadter"
 }
 
 void FanucAdapter::startConnections()
 {
+    std::cout << "FanucAdapter::startConnections()" << std::endl;
     //QThread *qth = QThread::create([this]() {this->makeConnection(); });
     //this->moveToThread(qth);
     //qth->start();
@@ -37,16 +36,17 @@ void FanucAdapter::startConnections()
             flag = true;
             break;
         }
-        std::cout << "Can create first connect ot server" << std::endl;
+        std::cout << "Can't create first connect to server" << std::endl;
     }
     if (!flag)
-        throw std::exception("can't connect ot server");
-
+        throw std::exception();
+    std::cout << "Connect to server!" << std::endl;
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
     double j6, int ctrl)
 {
+    std::cout << "FanucAdapter::slotSendNextPosition" << std::endl;
     std::stringstream sstr;
     sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000) 
         << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000) 
@@ -60,7 +60,10 @@ void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double 
 
 void FanucAdapter::slotReadFromServer()
 {
+    std::cout << "FanucAdapter::slotReadFromServer()" <<std::endl;
     _prevData += _socket->readAll().toStdString();
+
+    std::cout<<_prevData<<std::endl;
 
     std::vector<double> coords;
     coords.reserve(6);
@@ -88,10 +91,14 @@ void FanucAdapter::slotReadFromServer()
             coords[4], coords[5]);
         _prevData = "";
     }
+    _prevData = "";
+    //todo rewrite
 }
 
 void FanucAdapter::slotServerDisconnected()
 {
+    std::cout << "FanucAdapter::slotServerDisconnected()" <<std::endl;
+    _socket->close();
     makeConnection();
 }
 
@@ -99,7 +106,7 @@ bool FanucAdapter::TryConnect(int timeOut) const
 {
     if(_socket->isOpen())
     {
-        _socket->close();
+        return true;
     }
 
     _socket->connectToHost(_serverIP.c_str(), _serverPort);
@@ -119,5 +126,5 @@ void FanucAdapter::makeConnection()
         std::this_thread::sleep_for(std::chrono::milliseconds(1'000));
         std::cout << "try to connect ot robot" << std::endl;
     }
-    std::cout << "connected ot robot" << std::endl;
+    std::cout << "connected to robot" << std::endl;
 }
