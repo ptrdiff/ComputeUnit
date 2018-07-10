@@ -49,7 +49,7 @@ void RCAConnector::slotReadFromClient()
 {
     _prevData += _clientSocket->readAll().toStdString();
 
-    std::cout << "drom client was recieved:" << _prevData <<'|' << std::endl;
+    std::cout << "From client was recieved:" << _prevData <<'|' << std::endl;
 
     bool flag = true;
 

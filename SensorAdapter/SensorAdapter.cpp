@@ -3,7 +3,8 @@
 
 SensorAdapter::SensorAdapter(QObject* parent)
 try:
-QObject(parent)
+QObject(parent),
+_cvs(0.062,9,4,0,"../ComputerVisionSystem/CamCalibStable.txt")
 {
 }
 catch(const std::exception& exp)
