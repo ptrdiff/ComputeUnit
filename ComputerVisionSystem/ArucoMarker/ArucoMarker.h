@@ -35,7 +35,7 @@ namespace timur
          * \param[in] usePredefinedDictionary If false generate custom dictionary.
          * (need to enter count of markers and theirs size).
          */
-        explicit ArucoMarkers(float arucoSqureDimension, bool usePredefinedDictionary = true);
+        explicit ArucoMarkers(const float arucoSqureDimension, int countOfMarkers, int markerSize);
 
         /**
          * \brief ArucoMarkers destructor.

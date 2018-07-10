@@ -5,7 +5,6 @@
 #include "ArucoMarker.h"
 
 #include <string>
-#include <iostream>
 #include <filesystem>
 
 #include <opencv2/core/core.hpp>
@@ -14,28 +13,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/shape/hist_cost.hpp>
 
-timur::ArucoMarkers::ArucoMarkers(const float arucoSqureDimension,
-                                  const bool usePredefinedDictionary)
+timur::ArucoMarkers::ArucoMarkers(const float arucoSqureDimension, int countOfMarkers, int markerSize)
         : _arucoSqureDimension(arucoSqureDimension)
+        ,_markerDictionary(cv::aruco::generateCustomDictionary(countOfMarkers, markerSize))
 {
-    if (usePredefinedDictionary)
-    {
-        std::cout
-                << "DICT_4X4_50 = 0" << '\n'
-                << "DICT_4X4_100 = 1" << '\n'
-                << "DICT_4X4_250 = 2" << '\n'
-                << "DICT_4X4_1000 = 3" << '\n';
-        int dictionaryNumber;
-        std::cout << "Enter the number of dictionary you want: ";
-        std::cin >> dictionaryNumber;
-        std::cout << '\n';
-        _markerDictionary = cv::aruco::getPredefinedDictionary(dictionaryNumber);
-    }
-    else
-    {
-        _markerDictionary = cv::aruco::generateCustomDictionary(9, 4);
-        std::cout << "Markers Dictionary was created! " << std::endl;;
-    }
 }
 
 float timur::ArucoMarkers::arucoSqureDimension() const
