@@ -35,7 +35,7 @@ timur::CVS::CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
 {
     if (!_vid.isOpened())
     {
-        throw std::exception("can not create timur class");
+        throw std::exception();
     }
 }
 
@@ -46,7 +46,7 @@ std::array<double, 3> timur::CVS::getMarkerPose(const std::array<double, 6> join
     std::vector<int> markerIds;
     if (!_vid.read(frame))
     {
-        throw std::exception("can not work");
+        throw std::exception();
     }
 
     bool foundMarkers = _arucoMarkers.estimateMarkersPose(frame, _camera.cameraMatrix(),

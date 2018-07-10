@@ -3,6 +3,7 @@
 #include "chrono"
 #include <sstream>
 #include <iostream>
+#include <cmath>
 
 FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
 QObject(parent),
