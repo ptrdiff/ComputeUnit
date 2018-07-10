@@ -1,4 +1,7 @@
 #include "FanucAdapter.h"
+
+#include <qthread.h>
+
 #include "thread"
 #include "chrono"
 #include <sstream>
@@ -22,8 +25,10 @@ _serverIP(std::move(serverIP))
 
 void FanucAdapter::startConnections()
 {
-    std::thread th(&FanucAdapter::makeConnection,this);
-    th.detach();
+    QThread *qth = QThread::create([this]() {this->makeConnection(); });
+    qth->start();
+    //std::thread th(&FanucAdapter::makeConnection,this);
+    //th.detach();
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
