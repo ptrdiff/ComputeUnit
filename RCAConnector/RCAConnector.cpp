@@ -85,6 +85,7 @@ void RCAConnector::slotReadFromClient()
         else if(_prevData[0] == 'e')
         {
             QCoreApplication::exit(0);
+            break;
         }
         else if (_prevData[0] == 'm')
         {
