@@ -7,7 +7,7 @@ project ("ComputeUnit")
 
 if(WIN32)
     set(CMAKE_PREFIX_PATH "C:/Qt/5.11.0/msvc2017_64/")
-else(LINUX)
+else(UNIX)
     set(CMAKE_PREFIX_PATH "/usr/include/x86_64-linux-gnu/qt5")
 endif()
 
