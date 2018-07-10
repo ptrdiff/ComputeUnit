@@ -30,9 +30,6 @@ public slots:
 
     void slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6);
 
-    void slotShiftRobot(double j1, double j2, double j3, double j4, double j5,
-        double j6, int ctrl);
-
     void slotMoveRobot(double j1, double j2, double j3, double j4, double j5,
         double j6, int ctrl);
 

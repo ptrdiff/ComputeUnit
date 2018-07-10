@@ -5,6 +5,7 @@
 #include <iostream>
 
 FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
+QObject(parent),
 _prevData(""),
 _serverPort(port),
 _socket(std::make_unique<QTcpSocket>(this)),
@@ -20,16 +21,16 @@ _serverIP(std::move(serverIP))
 
 void FanucAdapter::startConnections()
 {
-    makeConnection();//
+    std::thread th(&FanucAdapter::makeConnection,this);
+    th.detach();
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
     double j6, int ctrl)
 {
     std::stringstream sstr;
-    sstr << "1 " << static_cast<int>(j1 * 1'000 + 0.5) << ' ' << static_cast<int>(j2 * 1'000 + 0.5)
-        << ' ' << static_cast<int>(j3 * 1'000 + 0.5) << ' ' << static_cast<int>(j4 * 1'000 + 0.5)
-        << ' ' << static_cast<int>(j5 * 1'000 + 0.5) << ' ' << static_cast<int>(j6 * 1'000 + 0.5) 
+    sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000) 
+        << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000) 
         << " 80 " << ctrl << ' ';
     std::cout << "was send: " << sstr.str() << std::endl;
     if (_socket->isOpen())
@@ -47,6 +48,8 @@ void FanucAdapter::slotReadFromServer()
 
     for(size_t i=0;i<_prevData.size();++i)
     {
+        if (_prevData[i] != ' ' && _prevData[i]<'0' && _prevData[i]>'9')
+            continue;
         if(_prevData[i] == ' ')
         {
             if(coords.size() == 6)

@@ -3,6 +3,7 @@
 //
 
 #include "CVS.h"
+#include <exception>
 
 cv::Mat timur::CVS::createTransformationMatrix(const cv::Vec3d& rotationVector,
                                    const cv::Vec3d& translationVector)
@@ -28,7 +29,7 @@ timur::CVS::CVS()
 {
     if (!vid.isOpened())
     {
-        throw std::system_error();
+        throw std::exception("can not create timur class");
     }
 }
 
@@ -44,7 +45,7 @@ std::array<double, 3> timur::CVS::getMarkerPose(const std::array<double, 6> join
     std::vector<int> markerIds;
     if (!vid.read(frame))
     {
-        throw std::system_error();
+        throw std::exception("can not work");
     }
 
     bool foundMarkers = arucoMarkers.estimateMarkersPose(frame, camera.cameraMatrix(),

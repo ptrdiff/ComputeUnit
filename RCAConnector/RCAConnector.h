@@ -18,9 +18,6 @@ public:
 
 signals:
 
-    void signalToMakeShift(double j1, double j2, double j3, double j4, double j5, double j6,
-        int ctrl);
-
     void signalToMoveRobot(double j1, double j2, double j3, double j4, double j5, double j6,
         int ctrl);
 

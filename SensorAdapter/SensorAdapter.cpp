@@ -1,7 +1,14 @@
 #include "SensorAdapter.h"
+#include <iostream>
 
 SensorAdapter::SensorAdapter(QObject* parent)
+try:
+QObject(parent)
 {
+}
+catch(const std::exception& exp)
+{
+    std::cout << exp.what() << std::endl;
 }
 
 void SensorAdapter::slotToFindCube(double j1, double j2, double j3, double j4, double j5, double j6)
