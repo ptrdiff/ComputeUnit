@@ -3,6 +3,8 @@
 #include "RCAConnector/RCAConnector.h"
 #include "Executor/Executor.h"
 
+#include <iostream>
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -33,7 +35,12 @@ int main(int argc, char *argv[])
 
     rcaConnector.launch();
 
-    fanucAdapter.startConnections();
-
+    try {
+        fanucAdapter.startConnections();
+    }
+    catch (std::exception exp) {
+        std::cout << exp.what() << std::endl;
+        return -1;
+    }
     return a.exec();
 }

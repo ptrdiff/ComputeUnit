@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <exception>
 
 FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
 QObject(parent),
@@ -25,10 +26,21 @@ _serverIP(std::move(serverIP))
 
 void FanucAdapter::startConnections()
 {
-    QThread *qth = QThread::create([this]() {this->makeConnection(); });
-    qth->start();
-    //std::thread th(&FanucAdapter::makeConnection,this);
-    //th.detach();
+    //QThread *qth = QThread::create([this]() {this->makeConnection(); });
+    //this->moveToThread(qth);
+    //qth->start();
+    bool flag = false;
+
+    for (int i = 0; i < 3; ++i) {
+        if (TryConnect(10000))
+        {
+            flag = true;
+            break;
+        }
+        std::cout << "Can create first connect ot server" << std::endl;
+    }
+    if (!flag)
+        throw std::exception("can't connect ot server");
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
