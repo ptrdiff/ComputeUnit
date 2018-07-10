@@ -20,22 +20,23 @@ cv::Mat timur::CVS::createTransformationMatrix(const cv::Vec3d& rotationVector,
 std::array<double, 3> timur::CVS::calculateMarkerPose(const cv::Mat transformationMatrix,
                                           const std::array<double, 6> jointCorners)
 {
-    const cv::Mat p6 = fanuc.fanucForwardTask(jointCorners);
-    cv::Mat res = p6 * fanuc.getToCamera() * transformationMatrix * fanuc.getToSixth();
+    const cv::Mat p6 = _fanuc.fanucForwardTask(jointCorners);
+    cv::Mat res = p6 * _fanuc.getToCamera() * transformationMatrix * _fanuc.getToSixth();
     return std::array<double, 3>{res.at<double>(0, 3), res.at<double>(1, 3), res.at<double>(2, 3)};
 }
 
-timur::CVS::CVS()
+timur::CVS::CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
+                int cameraIndex,
+                std::string calibrationFileName)
+        :_arucoMarkers(arucoSqureDimension,cointOfMarkers,markerSize)
+        ,_vid(cameraIndex)
+        ,_camera(calibrationFileName)
+        ,_fanuc()
 {
-    if (!vid.isOpened())
+    if (!_vid.isOpened())
     {
         throw std::exception("can not create timur class");
     }
-}
-
-timur::CVS::~CVS()
-{
-    vid.release();
 }
 
 std::array<double, 3> timur::CVS::getMarkerPose(const std::array<double, 6> jointCorners)
@@ -43,13 +44,13 @@ std::array<double, 3> timur::CVS::getMarkerPose(const std::array<double, 6> join
     cv::Mat frame;
     std::vector<cv::Vec3d> rotationVectors, translationVectors;
     std::vector<int> markerIds;
-    if (!vid.read(frame))
+    if (!_vid.read(frame))
     {
         throw std::exception("can not work");
     }
 
-    bool foundMarkers = arucoMarkers.estimateMarkersPose(frame, camera.cameraMatrix(),
-                                                               camera.distortionCoefficients(),
+    bool foundMarkers = _arucoMarkers.estimateMarkersPose(frame, _camera.cameraMatrix(),
+                                                               _camera.distortionCoefficients(),
                                                                rotationVectors,
                                                                translationVectors, markerIds);
     if(foundMarkers)

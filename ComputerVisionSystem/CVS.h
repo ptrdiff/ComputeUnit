@@ -16,19 +16,19 @@ namespace timur
 {
     class CVS {
     private:
-        float arucoSqureDimension = 0.062f;
-        timur::ArucoMarkers arucoMarkers = timur::ArucoMarkers(arucoSqureDimension, false);
-        cv::VideoCapture vid = cv::VideoCapture(0);
-        timur::CamCalibWi camera = timur::CamCalibWi("../CamCalibStable.txt");
-        nikita::FanucModel fanuc;
+        timur::ArucoMarkers _arucoMarkers;
+        cv::VideoCapture _vid;
+        timur::CamCalibWi _camera;
+        nikita::FanucModel _fanuc;
 
         cv::Mat createTransformationMatrix(const cv::Vec3d& rotationVector,
                                                   const cv::Vec3d& translationVector);
         std::array<double, 3> calculateMarkerPose(cv::Mat transformationMatrix,
                                                          std::array<double, 6> jointCorners);
     public:
-        CVS();
-        ~CVS();
+        CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
+            int cameraIndex,
+            std::string calibrationFileName);
 
         std::array<double, 3> getMarkerPose(std::array<double, 6> jointCorners);
     };
