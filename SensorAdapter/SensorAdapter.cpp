@@ -1,8 +1,15 @@
 #include "SensorAdapter.h"
+#include <iostream>
 
 SensorAdapter::SensorAdapter(QObject* parent)
-        :_cvs(0.062,9,4,0,"../ComputerVisionSystem/CamCalibStable.txt")
+try:
+QObject(parent),
+_cvs(0.062,9,4,0,"../ComputerVisionSystem/CamCalibStable.txt")
 {
+}
+catch(const std::exception& exp)
+{
+    std::cout << exp.what() << std::endl;
 }
 
 void SensorAdapter::slotToFindCube(double j1, double j2, double j3, double j4, double j5, double j6)

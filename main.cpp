@@ -28,9 +28,6 @@ int main(int argc, char *argv[])
     QObject::connect(&rcaConnector, &RCAConnector::signalToSearchCube, &executor,
         &Executor::slotFoundCubeTask);
 
-    QObject::connect(&rcaConnector, &RCAConnector::signalToMakeShift, &executor,
-        &Executor::slotShiftRobot);
-
     QObject::connect(&rcaConnector, &RCAConnector::signalToMoveRobot, &executor,
         &Executor::slotMoveRobot);
 

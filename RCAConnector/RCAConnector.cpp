@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 
 RCAConnector::RCAConnector(int port, QObject* parent) :
+QObject(parent),
 _port(port),
 _socket(std::make_unique<QTcpServer>(this))
 {
@@ -63,7 +64,7 @@ void RCAConnector::slotReadFromClient()
         {
             QCoreApplication::exit(0);
         }
-        else if (_prevData[0] == 'm' || _prevData[0] == 's')
+        else if (_prevData[0] == 'm')
         {
             std::array<double, 6> coords{};
             size_t pos = 2;
@@ -93,12 +94,8 @@ void RCAConnector::slotReadFromClient()
             }
             if (flag)
             {
-                if (_prevData[0] == 'm')
-                    emit signalToMoveRobot(coords[0], coords[1], coords[2], coords[3], coords[4],
-                        coords[5], param);
-                else
-                    emit signalToMakeShift(coords[0], coords[1], coords[2], coords[3], coords[4],
-                        coords[5], param);
+                emit signalToMoveRobot(coords[0], coords[1], coords[2], coords[3], coords[4],
+                    coords[5], param);
                 std::cout << "was parsed: ";
                 for (auto elem : coords)
                     std::cout << elem << ' ';
