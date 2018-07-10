@@ -37,10 +37,10 @@ void FanucAdapter::startConnections()
             flag = true;
             break;
         }
-        std::cout << "Can create first connect ot server" << std::endl;
+        std::cout << "Can't create first connect ot server" << std::endl;
     }
     if (!flag)
-        throw std::exception("can't connect ot server");
+        throw std::exception();
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
@@ -98,7 +98,7 @@ bool FanucAdapter::TryConnect(int timeOut) const
 {
     if(_socket->isOpen())
     {
-        _socket->close();
+        return true;
     }
 
     _socket->connectToHost(_serverIP.c_str(), _serverPort);
