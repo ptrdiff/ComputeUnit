@@ -5,6 +5,8 @@
 #include <QCoreApplication>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <fstream>
 
 std::vector<std::string> split(const std::string &str, const std::string &delim)
 {
@@ -38,7 +40,6 @@ void RCAConnector::launch()
 void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w, double p,
     double r)
 {
-    std::cout << "RCAConnector::slotToSendCubePosition" <<std::endl;
     std::stringstream str;
     str << "a " << x << ' ' << y << ' ' << z << ' ' << w << ' ' << p << ' ' << r;
     std::cout << "answer to client:" << str.str() << std::endl;
@@ -48,7 +49,6 @@ void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w
 void RCAConnector::slotToSendCurrentRobotPostion(double j1, double j2, double j3, double j4,
     double j5, double j6)
 {
-    std::cout << "RCAConnector::slotToSendCurrentRobotPostion" <<std::endl;
     std::stringstream str;
     str << "r " << j1 << ' ' << j2 << ' ' << j3 << ' ' << j4 << ' ' << j5 << ' ' << j6;
     std::cout << "answer to client:" << str.str() << std::endl;
@@ -57,7 +57,6 @@ void RCAConnector::slotToSendCurrentRobotPostion(double j1, double j2, double j3
 
 void RCAConnector::slotMakeNewConnection()
 {
-    std::cout << "RCAConnector::slotMakeNewConnection()" << std::endl;
     std::cout << "new client connected!" << std::endl;
 
     _clientSocket = _socket->nextPendingConnection();
@@ -68,43 +67,69 @@ void RCAConnector::slotMakeNewConnection()
 
 void RCAConnector::slotReadFromClient()
 {
-    std::cout << "RCAConnector::slotReadFromClient()" << std::endl;
-    _prevData += _clientSocket->readAll().toStdString();
+    double timeSum = 0;
 
-    std::cout << "From client was recieved:" << _prevData <<'|' << std::endl;
+    //std::ofstream out("input.txt");
+    auto start = std::chrono::high_resolution_clock::now();
 
-    bool flag = true;
+    std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 
-    while (flag && !_prevData.empty())
+    std::string locData = _clientSocket->readAll().toStdString();
+
+    std::cout << "From client was recieved:" << locData <<'|' << '\n';
+
+    auto tmp = std::chrono::high_resolution_clock::now();
+
+    auto cMes = locData.c_str();
+
+    for(auto it = cMes; it-cMes < locData.size();)
     {
-        if (_prevData[0] == 'f')
+        if (*it == 'f')
         {
             emit signalToSearchCube();
-            _prevData = _prevData.substr(2);
+            ++it;
         }
-        else if(_prevData[0] == 'e')
+        else if(*it == 'e')
         {
+            emit signalShutDown();
             QCoreApplication::exit(0);
-        }
-        else if (_prevData[0] == 'm')
-        {
-            auto splitString = split(_prevData," ");
-            emit signalToMoveRobot(atof(splitString[1].c_str()),
-                                   atof(splitString[2].c_str()),
-                                   atof(splitString[3].c_str()),
-                                   atof(splitString[4].c_str()),
-                                   atof(splitString[5].c_str()),
-                                   atof(splitString[6].c_str()),
-                                   atoi(splitString[7].c_str()));
             break;
         }
+        else if (*it == 'm')
+        {
+            std::array<double, 6> coords;
+            char* tmp;
+            ++it;
+            for (size_t i = 0; i < 6; ++i) {
+                coords[i] = strtod(it, &tmp);
+                it = tmp;
+            }
+            int param = strtol(it, &tmp, 10);
+            it = tmp;
+            t1 = std::chrono::high_resolution_clock::now();
+            emit signalToMoveRobot(coords[0], coords[1], coords[2], coords[3], coords[4],
+                                   coords[5], param);
+            t2 = std::chrono::high_resolution_clock::now();
+            timeSum += static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                t2 - t1).count()) / 1000;
+        }
+        if (*it == ' ')
+            ++it;
     }
     // todo: rewrite it later
-    _prevData = "";
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "time for read part: "
+        << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            tmp - start).count()) / 1000 << '\n';
+    std::cout << "time for parse part: "
+        << static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            end - tmp).count()) / 1000 << '\n';
+    std::cout << "time for signal emits: " << timeSum << std::endl;
 }
 
 void RCAConnector::slotClientDisconnected()
 {
-    std::cout << "RCAConnector::slotClientDisconnected()" << std::endl;
     _clientSocket->close();
 }
