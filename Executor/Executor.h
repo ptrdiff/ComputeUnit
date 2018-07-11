@@ -37,6 +37,8 @@ public slots:
 
     void slotNewCubePostion(double x, double y, double z, double w, double p, double r);
 
+    void slotShutDown();
+
 protected:
 
     bool                    _wasFirstPoint{false};

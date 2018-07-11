@@ -42,3 +42,10 @@ void Executor::slotNewCubePostion(double x, double y, double z, double w, double
     std::cout << "Executor::slotNewCubePostion" << std::endl;
     emit signalToSendCubePostion(x, y, z, w, p, r);
 }
+
+void Executor::slotShutDown()
+{
+    std::cout << "system is shutting down" << std::endl;
+    emit signalToSendNewPointToRobot(_currentCoords[0], _currentCoords[1], _currentCoords[2],
+        _currentCoords[3], _currentCoords[4], _currentCoords[5], 1);
+}

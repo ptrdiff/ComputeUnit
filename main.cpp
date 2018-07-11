@@ -34,6 +34,9 @@ int main(int argc, char *argv[])
     QObject::connect(&rcaConnector, &RCAConnector::signalToMoveRobot, &executor,
         &Executor::slotMoveRobot);
 
+    QObject::connect(&rcaConnector, &RCAConnector::signalShutDown, &executor,
+        &Executor::slotShutDown);
+
     rcaConnector.launch();
 
     try {

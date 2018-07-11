@@ -23,6 +23,8 @@ signals:
 
     void signalToSearchCube();
 
+    void signalShutDown();
+
 public slots:
 
     void slotToSendCubePosition(double x, double y, double z, double w, double p, double r);
@@ -45,8 +47,6 @@ protected:
     QTcpSocket *                    _clientSocket = nullptr;
 
     std::unique_ptr<QTcpServer>	    _socket;
-
-    std::string                     _prevData{ "" };
 
 };
 
