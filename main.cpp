@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    //FanucAdapter fanucAdapter("172.27.221.60",59002);
-    FanucAdapter fanucAdapter("127.0.0.1", 59002);
+    FanucAdapter fanucAdapter("172.27.221.60",59002);
+    //FanucAdapter fanucAdapter("127.0.0.1", 59002);
 
     RCAConnector rcaConnector(9090);
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     try {
         fanucAdapter.startConnections();
     }
-    catch (std::exception exp) {
+    catch (std::exception& exp) {
         std::cout << exp.what() << std::endl;
         return -1;
     }

@@ -12,7 +12,7 @@
 FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
 QObject(parent),
 _prevData(""),
-_serverPort(port),
+_serverPort(static_cast<quint16>(port)),
 _socket(std::make_unique<QTcpSocket>(this)),
 _serverIP(std::move(serverIP))
 {
@@ -24,7 +24,6 @@ _serverIP(std::move(serverIP))
 
 void FanucAdapter::startConnections()
 {
-    std::cout << "FanucAdapter::startConnections()" << std::endl;
     //QThread *qth = QThread::create([this]() {this->makeConnection(); });
     //this->moveToThread(qth);
     //qth->start();
@@ -46,7 +45,6 @@ void FanucAdapter::startConnections()
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
     double j6, double speed, int ctrl)
 {
-    std::cout << "FanucAdapter::slotSendNextPosition" << std::endl;
     std::stringstream sstr;
     sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000)
         << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000)
@@ -97,7 +95,6 @@ void FanucAdapter::slotReadFromServer()
 
 void FanucAdapter::slotServerDisconnected()
 {
-    std::cout << "FanucAdapter::slotServerDisconnected()" <<std::endl;
     _socket->close();
     makeConnection();
 }
