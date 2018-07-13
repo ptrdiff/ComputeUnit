@@ -44,13 +44,13 @@ void FanucAdapter::startConnections()
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
-    double j6, int ctrl)
+    double j6, double speed, int ctrl)
 {
     std::cout << "FanucAdapter::slotSendNextPosition" << std::endl;
     std::stringstream sstr;
-    sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000) 
-        << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000) 
-        << " 80 " << ctrl << ' ';
+    sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000)
+        << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000)
+        << " " << lround(speed * 1'000) << " " << ctrl << ' ';
     std::cout << "was send: " << sstr.str() << std::endl;
     if (_socket->isOpen())
         _socket->write(sstr.str().c_str());
@@ -113,7 +113,7 @@ bool FanucAdapter::TryConnect(int timeOut) const
 
     if(_socket->waitForConnected(timeOut))
     {
-        _socket->write("2 0 3 7 1 4 0.01 0");
+        _socket->write("2 0 3 7 1 4 0.01 0");///check it
         return true;
     }
     return false;
