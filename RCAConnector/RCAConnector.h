@@ -42,7 +42,7 @@ private slots:
 
 protected:
 
-    int                             _port;
+    quint16 _port;
 
     QTcpSocket *                    _clientSocket = nullptr;
 

@@ -37,7 +37,7 @@ protected:
 
     std::string                     _prevData;
 
-    int	                            _serverPort;
+    quint16 _serverPort;
 
     std::unique_ptr<QTcpSocket>     _socket;
 
