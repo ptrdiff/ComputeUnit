@@ -58,7 +58,7 @@ void RCAConnector::slotReadFromClient()
             emit signalToSearchCube();
         } else if (token == "e") {
             emit signalShutDown();
-            QCoreApplication::exit(0);
+            
             break;
         } else if (token == "m") {
             std::array<double, 6> coords{};

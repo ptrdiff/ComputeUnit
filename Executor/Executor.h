@@ -1,7 +1,11 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
+#include "../FanucAdapter/FanucAdapter.h"
+#include "../RCAConnector/RCAConnector.h"
+
 #include <QObject>
+#include <qthread.h>
 
 #include <array>
 
@@ -11,7 +15,9 @@ class Executor : public QObject
 
 public:
     
-    Executor(QObject *parent = nullptr);
+    Executor(std::string, int, int, QObject *parent = nullptr);
+
+    void shutDown();
 
 signals:
 
@@ -44,6 +50,14 @@ protected:
     bool                    _wasFirstPoint{false};
 
     std::array<double, 6>   _currentCoords;
+
+    QThread _clientThread;
+
+    QThread _robotThread;
+
+    RCAConnector _rcac;
+
+    FanucAdapter _robot;
 };
 
 #endif // EXECUTOR_H

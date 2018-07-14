@@ -1,9 +1,52 @@
 #include "Executor.h"
 #include <iostream>
+#include <QCoreApplication>
 
-Executor::Executor(QObject* parent):
-QObject(parent)
+Executor::Executor(std::string robotIP, int robotPort, int clientPort, QObject* parent):
+QObject(parent),
+_clientThread(this),
+_robotThread(this),
+_robot(robotIP, robotPort, this),
+_rcac(clientPort, this)
 {
+
+    _robot.moveToThread(&_robotThread);
+
+    _rcac.moveToThread(&_clientThread);
+
+    QObject::connect(&_robot, &FanucAdapter::signalToSendCurrentPosition, this,
+        &Executor::slotNewRobotPostion);
+
+    QObject::connect(this, &Executor::signalToSendNewPointToRobot, &_robot,
+        &FanucAdapter::slotSendNextPosition);
+
+    QObject::connect(this, &Executor::signalToSendCubePostion, &_rcac,
+        &RCAConnector::slotToSendCubePosition);
+
+    QObject::connect(this, &Executor::signalToSendCurrentPositionToClient, &_rcac,
+        &RCAConnector::slotToSendCurrentRobotPostion);
+
+    QObject::connect(&_rcac, &RCAConnector::signalToSearchCube, this,
+        &Executor::slotFoundCubeTask);
+
+    QObject::connect(&_rcac, &RCAConnector::signalToMoveRobot, this,
+        &Executor::slotMoveRobot);
+
+    QObject::connect(&_rcac, &RCAConnector::signalShutDown, this,
+        &Executor::slotShutDown);
+
+    _rcac.launch();
+
+    try {
+        _robot.startConnections();
+    }
+    catch (std::exception& exp) {
+        std::cout << exp.what() << std::endl;
+        throw std::exception();
+    }
+
+    _robotThread.start();
+    _clientThread.start();
 }
 
 void Executor::slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6)
@@ -53,7 +96,15 @@ void Executor::slotNewCubePostion(double x, double y, double z, double w, double
 
 void Executor::slotShutDown()
 {
+    shutDown();
+}
+
+void Executor::shutDown()
+{
     std::cout << "system is shutting down" << std::endl;
     emit signalToSendNewPointToRobot(_currentCoords[0], _currentCoords[1], _currentCoords[2],
         _currentCoords[3], _currentCoords[4], _currentCoords[5], 0.08, 1);
+    _clientThread.exit(0);
+    _robotThread.exit(0);
+    QCoreApplication::exit(0);
 }
