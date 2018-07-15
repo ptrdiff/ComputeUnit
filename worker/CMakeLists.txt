@@ -3,7 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project(RCAConnector)
+project(worker)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -13,12 +13,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(${PROJECT_NAME} STATIC
-    RCAConnector.h
-    RCAConnector.cpp
+    worker.h
+    worker.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
-	worker
 )

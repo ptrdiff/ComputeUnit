@@ -19,7 +19,13 @@ public:
 
     void shutDown();
 
+    void launch();
+
 signals:
+
+    void startRCA();
+
+    void startRobotAdapter();
 
     void signalToSendNewPointToRobot(double j1, double j2, double j3, double j4, double j5,
         double j6, double speed, int ctrl);
@@ -50,10 +56,6 @@ protected:
     bool                    _wasFirstPoint{false};
 
     std::array<double, 6>   _currentCoords;
-
-    QThread _clientThread;
-
-    QThread _robotThread;
 
     RCAConnector _rcac;
 

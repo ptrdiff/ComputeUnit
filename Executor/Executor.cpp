@@ -2,51 +2,47 @@
 #include <iostream>
 #include <QCoreApplication>
 
-Executor::Executor(std::string robotIP, int robotPort, int clientPort, QObject* parent):
+Executor::Executor(std::string robotIP, int robotPort, int clientPort, QObject* parent)try :
 QObject(parent),
-_clientThread(this),
-_robotThread(this),
-_robot(robotIP, robotPort, this),
-_rcac(clientPort, this)
+_robot(std::move(robotIP), robotPort),
+_rcac(clientPort)
 {
-
-    _robot.moveToThread(&_robotThread);
-
-    _rcac.moveToThread(&_clientThread);
-
     QObject::connect(&_robot, &FanucAdapter::signalToSendCurrentPosition, this,
-        &Executor::slotNewRobotPostion);
+        &Executor::slotNewRobotPostion, Qt::QueuedConnection);
 
     QObject::connect(this, &Executor::signalToSendNewPointToRobot, &_robot,
-        &FanucAdapter::slotSendNextPosition);
+        &FanucAdapter::slotSendNextPosition, Qt::QueuedConnection);
+
+    QObject::connect(this, &Executor::startRobotAdapter, &_robot,
+        &FanucAdapter::startConnections, Qt::QueuedConnection);
 
     QObject::connect(this, &Executor::signalToSendCubePostion, &_rcac,
-        &RCAConnector::slotToSendCubePosition);
+        &RCAConnector::slotToSendCubePosition, Qt::QueuedConnection);
+
+    QObject::connect(this, &Executor::startRCA, &_rcac,
+        &RCAConnector::launch, Qt::QueuedConnection);
 
     QObject::connect(this, &Executor::signalToSendCurrentPositionToClient, &_rcac,
-        &RCAConnector::slotToSendCurrentRobotPostion);
+        &RCAConnector::slotToSendCurrentRobotPostion, Qt::QueuedConnection);
 
     QObject::connect(&_rcac, &RCAConnector::signalToSearchCube, this,
-        &Executor::slotFoundCubeTask);
+        &Executor::slotFoundCubeTask, Qt::QueuedConnection);
 
     QObject::connect(&_rcac, &RCAConnector::signalToMoveRobot, this,
-        &Executor::slotMoveRobot);
+        &Executor::slotMoveRobot, Qt::QueuedConnection);
 
     QObject::connect(&_rcac, &RCAConnector::signalShutDown, this,
-        &Executor::slotShutDown);
+        &Executor::slotShutDown, Qt::QueuedConnection);
+    //*/
+}
+catch (std::exception& exp) {
+    std::cout << exp.what() << std::endl;
+    throw std::exception();
+}
 
-    _rcac.launch();
-
-    try {
-        _robot.startConnections();
-    }
-    catch (std::exception& exp) {
-        std::cout << exp.what() << std::endl;
-        throw std::exception();
-    }
-
-    _robotThread.start();
-    _clientThread.start();
+void Executor::launch() {
+    emit startRCA();
+    emit startRobotAdapter();
 }
 
 void Executor::slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6)
@@ -65,7 +61,7 @@ void Executor::slotMoveRobot(double j1, double j2, double j3, double j4, double 
     {
         speed = (abs(_currentCoords[0] - j1) + abs(_currentCoords[1] - j2) + 
             abs(_currentCoords[2] - j3) + abs(_currentCoords[3] - j4) + 
-            abs(_currentCoords[4] - j5) + abs(_currentCoords[5] - j6))/20;
+            abs(_currentCoords[4] - j5) + abs(_currentCoords[5] - j6))/30;
     }
 
     _wasFirstPoint = true;
@@ -97,6 +93,7 @@ void Executor::slotNewCubePostion(double x, double y, double z, double w, double
 void Executor::slotShutDown()
 {
     shutDown();
+    QCoreApplication::exit(0);
 }
 
 void Executor::shutDown()
@@ -104,7 +101,4 @@ void Executor::shutDown()
     std::cout << "system is shutting down" << std::endl;
     emit signalToSendNewPointToRobot(_currentCoords[0], _currentCoords[1], _currentCoords[2],
         _currentCoords[3], _currentCoords[4], _currentCoords[5], 0.08, 1);
-    _clientThread.exit(0);
-    _robotThread.exit(0);
-    QCoreApplication::exit(0);
 }

@@ -1,7 +1,5 @@
 #include "FanucAdapter.h"
 
-#include <qthread.h>
-
 #include "thread"
 #include "chrono"
 #include <sstream>
@@ -13,22 +11,47 @@ FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
 QObject(parent),
 _prevData(""),
 _serverPort(static_cast<quint16>(port)),
-_socket(std::make_unique<QTcpSocket>(this)),
-_serverIP(std::move(serverIP))
+_serverIP(serverIP)
 {
+    this->moveToThread(&_myThread);
+    auto func = [this]() {
+        this->startConnections();
+    };
+
+    _initialiser.moveToThread(&_myThread);
+
+    connect(this, &FanucAdapter::signalToInitialise, &_initialiser, &Worker::slotToDoSomething);
+
+    _myThread.start();
+
+    emit signalToInitialise(func);
+}
+
+FanucAdapter::~FanucAdapter() {
+    std::cout << "robotAdapterShuttingDown\n";
+    auto func = [this]() {
+        std::cout << "socketDeInitialiser\n";
+        this->deInitialiseSocket();
+    };
+    emit signalToInitialise(func);
+    //_myThread.quit();
+    _myThread.wait();
+    std::cout << "robotAdapterShuttedDown\n";
+}
+void FanucAdapter::startConnections()
+{
+    _socket.swap(std::unique_ptr<QTcpSocket>(new QTcpSocket(this)));
     connect(_socket.get(), &QTcpSocket::readyRead, this, &FanucAdapter::slotReadFromServer);
 
     connect(_socket.get(), &QTcpSocket::disconnected, this, &FanucAdapter::slotServerDisconnected,
         Qt::QueuedConnection);
-}
+    _isInitialised = true;
 
-void FanucAdapter::startConnections()
-{
     //QThread *qth = QThread::create([this]() {this->makeConnection(); });
     //this->moveToThread(qth);
     //qth->start();
     bool flag = false;
-
+    
     for (int i = 0; i < 3; ++i) {
         if (TryConnect(10000))
         {
@@ -36,15 +59,23 @@ void FanucAdapter::startConnections()
             break;
         }
         std::cout << "Can't create first connect to server" << std::endl;
-    }
+    }//*/
     if (!flag)
         throw std::exception();
     std::cout << "Connect to server!" << std::endl;
+    
+}
+
+void FanucAdapter::deInitialiseSocket() {
+    _socket.swap(std::unique_ptr<QTcpSocket>(nullptr));
+    _myThread.quit();
 }
 
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
     double j6, double speed, int ctrl)
 {
+    if (!_isInitialised)
+        startConnections();
     std::stringstream sstr;
     sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000)
         << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000)
@@ -58,6 +89,8 @@ void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double 
 
 void FanucAdapter::slotReadFromServer()
 {
+    if (!_isInitialised)
+        startConnections();
     std::cout << "FanucAdapter::slotReadFromServer()" <<std::endl;
     _prevData += _socket->readAll().toStdString();
 
@@ -95,15 +128,24 @@ void FanucAdapter::slotReadFromServer()
 
 void FanucAdapter::slotServerDisconnected()
 {
+    if (!_isInitialised)
+        startConnections();
     _socket->close();
     makeConnection();
 }
 
-bool FanucAdapter::TryConnect(int timeOut) const
+bool FanucAdapter::TryConnect(int timeOut)
 {
-    if(_socket->isOpen())
+    if (!_isInitialised)
+        startConnections();
+    if (_socket->state() == QAbstractSocket::SocketState::ConnectedState)
     {
         return true;
+    }
+
+    if(_socket->isOpen())
+    {
+        _socket->close();
     }
 
     _socket->connectToHost(_serverIP.c_str(), _serverPort);
@@ -112,12 +154,14 @@ bool FanucAdapter::TryConnect(int timeOut) const
     {
         _socket->write("2 0 3 7 1 4 0.01 0");///check it
         return true;
-    }
+    }//*/
     return false;
 }
 
 void FanucAdapter::makeConnection()
 {
+    if (!_isInitialised)
+        startConnections();
     while (!TryConnect())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1'000));

@@ -23,4 +23,5 @@ target_link_libraries(${PROJECT_NAME}
 	FanucAdapter
 	RCAConnector
 	SensorAdapter
+	worker
 )

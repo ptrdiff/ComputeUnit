@@ -3,13 +3,31 @@
 #include "Executor/Executor.h"
 
 #include <iostream>
+#include <thread>
+#include <chrono>
+
+Q_DECLARE_METATYPE(std::function<void()>)
+
+void initialise() 
+{
+    qRegisterMetaType<std::function<void()>>("myLyambda");
+}
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    try {
+        QCoreApplication a(argc, argv);
 
-    Executor executor("172.27.221.60", 59002, 9090);
-    //Executor executor("127.0.0.1", 59002, 9090);
-    
-    return a.exec();
+        initialise();
+
+        //Executor executor("172.27.221.60", 59002, 9090);
+        Executor executor("127.0.0.1", 59002, 9090);
+        
+        return a.exec();
+    }
+    catch (std::exception exp) {
+        std::cout << exp.what() << '\n';
+        //throw exp;
+    }
+
 }

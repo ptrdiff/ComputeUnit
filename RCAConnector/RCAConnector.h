@@ -4,8 +4,12 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QTcpServer>
+#include <QThread>
+
+#include "../worker/worker.h"
 
 #include <memory>
+
 
 class RCAConnector : public QObject
 {
@@ -14,7 +18,7 @@ public:
 
     RCAConnector(int port, QObject *parent = nullptr);
 
-    void launch();
+    ~RCAConnector();
 
 signals:
 
@@ -25,7 +29,13 @@ signals:
 
     void signalShutDown();
 
+    void signalToInitialise(std::function<void()> func);
+
 public slots:
+
+    void launch();
+
+    void deInitialiseSocket();
 
     void slotToSendCubePosition(double x, double y, double z, double w, double p, double r);
 
@@ -41,6 +51,12 @@ private slots:
     void slotClientDisconnected();
 
 protected:
+
+    Worker                          _initialiser;
+
+    bool                            _isInitialiesd{ false };
+
+    QThread                            _myThread;
 
     quint16 _port;
 
