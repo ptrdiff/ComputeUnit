@@ -2,8 +2,10 @@
 #define EXECUTOR_H
 
 #include <array>
+#include <unordered_map>
 
 #include <QObject>
+#include <QString>
 
 #include "../FanucAdapter/FanucAdapter.h"
 #include "../RCAConnector/RCAConnector.h"
@@ -17,11 +19,9 @@ public:
 
     static constexpr double TIME_FOR_RESPONSE = 30.;
 
-    static constexpr double DEFAULT_SPEED = 0.08;
+    static constexpr double DEFAULT_SPEED = 0.1;
     
     Executor(std::string, int, int, QObject *parent = nullptr);
-
-    void shutDown();
 
 signals:
 
@@ -49,7 +49,11 @@ public slots:
 
     void slotShutDown();
 
-protected:
+    void slotToApplyCommand(const QString& id,const QVector<double>& params);
+
+private:
+
+    using executableCommand = void(Executor::*)(const QVector<double>&);
 
     bool                    _wasFirstPoint{false};
 
@@ -58,6 +62,14 @@ protected:
     RCAConnector            _rcac;
 
     FanucAdapter            _robot;
+
+    std::unordered_map<std::string, executableCommand> _commandTable;
+
+    void moveRobot(const QVector<double>&);
+
+    void answerClient(const QVector<double>&);
+
+    void shutDown(const QVector<double>&);
 };
 
 #endif // EXECUTOR_H

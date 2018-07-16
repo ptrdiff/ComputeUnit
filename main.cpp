@@ -9,6 +9,7 @@ Q_DECLARE_METATYPE(std::function<void()>)
 void initialise()
 {
     qRegisterMetaType<std::function<void()>>("myLyambda");
+    qRegisterMetaType<QVector<double>>("myQVectorDouble");
 }
 
 int main(int argc, char *argv[])

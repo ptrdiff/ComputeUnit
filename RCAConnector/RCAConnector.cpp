@@ -4,7 +4,6 @@
 #include <array>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <chrono>
 
 RCAConnector::RCAConnector(int port, QObject* parent) :
@@ -39,14 +38,14 @@ RCAConnector::~RCAConnector() {
 
 void RCAConnector::launch()
 {
-    _socket.swap(std::unique_ptr<QTcpServer>(new QTcpServer(this)));
+    _socket = std::make_unique<QTcpServer>(this);
     connect(_socket.get(), &QTcpServer::newConnection, this, &RCAConnector::slotMakeNewConnection);
     _socket->listen(QHostAddress::AnyIPv4, _port);
 }
 
 void RCAConnector::deInitialiseSocket()
 {
-    _socket.swap(std::unique_ptr<QTcpServer>(nullptr));
+    _socket = std::unique_ptr<QTcpServer>(nullptr);
     _myThread.quit();
 }
 

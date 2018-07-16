@@ -38,7 +38,7 @@ FanucAdapter::~FanucAdapter() {
 }
 void FanucAdapter::startConnections()
 {
-    _socket.swap(std::unique_ptr<QTcpSocket>(new QTcpSocket(this)));
+    _socket = std::make_unique<QTcpSocket>(this);
     connect(_socket.get(), &QTcpSocket::readyRead, this, &FanucAdapter::slotReadFromServer);
 
     connect(_socket.get(), &QTcpSocket::disconnected, this, &FanucAdapter::slotServerDisconnected,
@@ -63,7 +63,7 @@ void FanucAdapter::startConnections()
 }
 
 void FanucAdapter::deInitialiseSocket() {
-    _socket.swap(std::unique_ptr<QTcpSocket>(nullptr));
+    _socket = std::unique_ptr<QTcpSocket>(nullptr);
     _myThread.quit();
 }
 
