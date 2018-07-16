@@ -1,9 +1,13 @@
 #include "Executor.h"
+
 #include <iostream>
+
 #include <QCoreApplication>
 
 Executor::Executor(std::string robotIP, int robotPort, int clientPort, QObject* parent)try :
 QObject(parent),
+_wasFirstPoint(false),
+_currentCoords(),
 _robot(std::move(robotIP), robotPort),
 _rcac(clientPort)
 {
@@ -13,14 +17,8 @@ _rcac(clientPort)
     QObject::connect(this, &Executor::signalToSendNewPointToRobot, &_robot,
         &FanucAdapter::slotSendNextPosition, Qt::QueuedConnection);
 
-    QObject::connect(this, &Executor::startRobotAdapter, &_robot,
-        &FanucAdapter::startConnections, Qt::QueuedConnection);
-
     QObject::connect(this, &Executor::signalToSendCubePostion, &_rcac,
         &RCAConnector::slotToSendCubePosition, Qt::QueuedConnection);
-
-    QObject::connect(this, &Executor::startRCA, &_rcac,
-        &RCAConnector::launch, Qt::QueuedConnection);
 
     QObject::connect(this, &Executor::signalToSendCurrentPositionToClient, &_rcac,
         &RCAConnector::slotToSendCurrentRobotPostion, Qt::QueuedConnection);
@@ -40,11 +38,6 @@ catch (std::exception& exp) {
     throw std::exception();
 }
 
-void Executor::launch() {
-    emit startRCA();
-    emit startRobotAdapter();
-}
-
 void Executor::slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6)
 {
     std::cout << "Executor::slotNewRobotPostion" << std::endl;
@@ -61,7 +54,7 @@ void Executor::slotMoveRobot(double j1, double j2, double j3, double j4, double 
     {
         speed = (abs(_currentCoords[0] - j1) + abs(_currentCoords[1] - j2) + 
             abs(_currentCoords[2] - j3) + abs(_currentCoords[3] - j4) + 
-            abs(_currentCoords[4] - j5) + abs(_currentCoords[5] - j6))/30;
+            abs(_currentCoords[4] - j5) + abs(_currentCoords[5] - j6))/ TIME_FOR_RESPONSE;
     }
 
     _wasFirstPoint = true;
@@ -100,5 +93,5 @@ void Executor::shutDown()
 {
     std::cout << "system is shutting down" << std::endl;
     emit signalToSendNewPointToRobot(_currentCoords[0], _currentCoords[1], _currentCoords[2],
-        _currentCoords[3], _currentCoords[4], _currentCoords[5], 0.08, 1);
+        _currentCoords[3], _currentCoords[4], _currentCoords[5], DEFAULT_SPEED, 1);
 }

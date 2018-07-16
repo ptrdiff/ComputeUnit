@@ -1,14 +1,14 @@
 #ifndef RCA_CONNECTOR_H
 #define RCA_CONNECTOR_H
 
+#include <memory>
+
 #include <QObject>
 #include <QTcpSocket>
 #include <QTcpServer>
 #include <QThread>
 
-#include "../worker/worker.h"
-
-#include <memory>
+#include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
 
 class RCAConnector : public QObject
@@ -20,6 +20,10 @@ public:
 
     ~RCAConnector();
 
+    void launch();
+
+    void deInitialiseSocket();
+
 signals:
 
     void signalToMoveRobot(double j1, double j2, double j3, double j4, double j5, double j6,
@@ -29,13 +33,7 @@ signals:
 
     void signalShutDown();
 
-    void signalToInitialise(std::function<void()> func);
-
 public slots:
-
-    void launch();
-
-    void deInitialiseSocket();
 
     void slotToSendCubePosition(double x, double y, double z, double w, double p, double r);
 
@@ -52,17 +50,19 @@ private slots:
 
 protected:
 
-    Worker                          _initialiser;
+    MultiThreadingWorker        _workerInOtherThread;
 
-    bool                            _isInitialiesd{ false };
+    QThread                     _myThread;
 
-    QThread                            _myThread;
+    quint16                     _port;
 
-    quint16 _port;
+    QTcpSocket *                _clientSocket = nullptr;
 
-    QTcpSocket *                    _clientSocket = nullptr;
+    std::unique_ptr<QTcpServer> _socket;
 
-    std::unique_ptr<QTcpServer>	    _socket;
+signals:
+
+    void signalToInitialise(std::function<void()> func);
 
 };
 

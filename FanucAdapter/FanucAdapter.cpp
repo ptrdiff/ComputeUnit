@@ -1,7 +1,7 @@
 #include "FanucAdapter.h"
 
-#include "thread"
-#include "chrono"
+#include <thread>
+#include <chrono>
 #include <sstream>
 #include <iostream>
 #include <cmath>
@@ -9,34 +9,32 @@
 
 FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
 QObject(parent),
-_prevData(""),
+_workerInOtherThread(),
+_myThread(),
 _serverPort(static_cast<quint16>(port)),
-_serverIP(serverIP)
+_socket(),
+_serverIP(std::move(serverIP))
 {
     this->moveToThread(&_myThread);
-    auto func = [this]() {
-        this->startConnections();
-    };
 
-    _initialiser.moveToThread(&_myThread);
+    _workerInOtherThread.moveToThread(&_myThread);
 
-    connect(this, &FanucAdapter::signalToInitialise, &_initialiser, &Worker::slotToDoSomething);
+    connect(this, &FanucAdapter::signalToInitialise, &_workerInOtherThread,
+        &MultiThreadingWorker::slotToDoSomething);
 
     _myThread.start();
 
-    emit signalToInitialise(func);
+    emit signalToInitialise([this]() {
+        this->startConnections();
+    });
 }
 
 FanucAdapter::~FanucAdapter() {
-    std::cout << "robotAdapterShuttingDown\n";
-    auto func = [this]() {
-        std::cout << "socketDeInitialiser\n";
+    emit signalToInitialise([this]() {
         this->deInitialiseSocket();
-    };
-    emit signalToInitialise(func);
-    //_myThread.quit();
+    });
     _myThread.wait();
-    std::cout << "robotAdapterShuttedDown\n";
+    std::cout << "robotAdapterShuttedDown" << std::endl;
 }
 void FanucAdapter::startConnections()
 {
@@ -45,15 +43,13 @@ void FanucAdapter::startConnections()
 
     connect(_socket.get(), &QTcpSocket::disconnected, this, &FanucAdapter::slotServerDisconnected,
         Qt::QueuedConnection);
-    _isInitialised = true;
-
-    //QThread *qth = QThread::create([this]() {this->makeConnection(); });
-    //this->moveToThread(qth);
-    //qth->start();
+    
     bool flag = false;
+
+    constexpr int LONG_CONNECTION = 10'000;
     
     for (int i = 0; i < 3; ++i) {
-        if (TryConnect(10000))
+        if (TryConnect(LONG_CONNECTION))
         {
             flag = true;
             break;
@@ -74,13 +70,11 @@ void FanucAdapter::deInitialiseSocket() {
 void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
     double j6, double speed, int ctrl)
 {
-    if (!_isInitialised)
-        startConnections();
     std::stringstream sstr;
     sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000)
         << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000)
-        << " " << lround(speed * 1'000) << " " << ctrl << ' ';
-    std::cout << "was send: " << sstr.str() << std::endl;
+        << ' ' << lround(speed * 1'000) << ' ' << ctrl << ' ';
+    std::cout << "was send: " << sstr.str() << '|' << std::endl;
     if (_socket->isOpen())
         _socket->write(sstr.str().c_str());
     else
@@ -89,55 +83,47 @@ void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double 
 
 void FanucAdapter::slotReadFromServer()
 {
-    if (!_isInitialised)
-        startConnections();
     std::cout << "FanucAdapter::slotReadFromServer()" <<std::endl;
-    _prevData += _socket->readAll().toStdString();
+    std::string  newData = _socket->readAll().toStdString();
 
-    std::cout<<_prevData<<std::endl;
+    std::cout<< newData << std::endl;
 
     std::vector<double> coords;
     coords.reserve(6);
 
-    for(size_t i=0;i<_prevData.size();++i)
+    for(size_t i=0;i<newData.size();++i)
     {
-        if (_prevData[i] != ' ' && _prevData[i]<'0' && _prevData[i]>'9')
+        if (newData[i] != ' ' && newData[i]<'0' && newData[i]>'9')
             continue;
-        if(_prevData[i] == ' ')
+        if(newData[i] == ' ')
         {
             if(coords.size() == 6)
             {
                 emit signalToSendCurrentPosition(coords[0], coords[1], coords[2], coords[3],
                     coords[4], coords[5]);
                 coords.clear();
-                _prevData = _prevData.substr(i);
+                newData = newData.substr(i);
                 i = 0;
             }
-            coords.emplace_back(atof(_prevData.substr(i).c_str()));
+            coords.emplace_back(atof(newData.substr(i).c_str()));
         }
     }
     if (coords.size() == 6)
     {
         emit signalToSendCurrentPosition(coords[0], coords[1], coords[2], coords[3],
             coords[4], coords[5]);
-        _prevData = "";
     }
-    _prevData = "";
     //todo rewrite
 }
 
 void FanucAdapter::slotServerDisconnected()
 {
-    if (!_isInitialised)
-        startConnections();
     _socket->close();
     makeConnection();
 }
 
 bool FanucAdapter::TryConnect(int timeOut)
 {
-    if (!_isInitialised)
-        startConnections();
     if (_socket->state() == QAbstractSocket::SocketState::ConnectedState)
     {
         return true;
@@ -152,16 +138,15 @@ bool FanucAdapter::TryConnect(int timeOut)
 
     if(_socket->waitForConnected(timeOut))
     {
-        _socket->write("2 0 3 7 1 4 0.01 0");///check it
+        _socket->write("2 0 3 7 1 4 0.01 0");
+        //todo check it
         return true;
-    }//*/
+    }
     return false;
 }
 
 void FanucAdapter::makeConnection()
 {
-    if (!_isInitialised)
-        startConnections();
     while (!TryConnect())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(1'000));

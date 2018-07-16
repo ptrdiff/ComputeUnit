@@ -5,13 +5,13 @@
 
 #include <functional>
 
-class Worker : public QObject
+class MultiThreadingWorker : public QObject
 {
     Q_OBJECT
 
 public:
 
-    Worker(QObject *parent = nullptr);
+    MultiThreadingWorker(QObject *parent = nullptr);
 
 signals:
 
