@@ -1,11 +1,14 @@
 #ifndef FANUC_ADAPTER_H
 #define FANUC_ADAPTER_H
 
+#include <memory>
+
 #include <QObject>
 #include <QTcpSocket>
 #include <QTcpServer>
+#include <QThread>
 
-#include <memory>
+#include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
 class FanucAdapter : public QObject
 {
@@ -15,7 +18,11 @@ public:
 
     FanucAdapter(std::string serverIP, int port, QObject* parent = nullptr);
 
+    ~FanucAdapter();
+
     void startConnections();
+
+    void deInitialiseSocket();
 
 signals:
 
@@ -35,18 +42,25 @@ private slots:
 
 protected:
 
-    std::string                     _prevData;
+    MultiThreadingWorker            _workerInOtherThread;
 
-    quint16 _serverPort;
+    QThread                         _myThread;
+
+    quint16                         _serverPort;
 
     std::unique_ptr<QTcpSocket>     _socket;
 
     std::string                     _serverIP;
 
-    bool TryConnect(int timeOut = 1'000) const;
+    static constexpr int            DEFUALT_TIME_FOR_CONNECT = 1'000;
+
+    bool TryConnect(int timeOut = DEFUALT_TIME_FOR_CONNECT);
 
     void makeConnection();
 
+signals:
+
+    void signalToInitialise(std::function<void()> func);
 };
 
 #endif // FANUC_ADAPTER_H

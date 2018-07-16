@@ -1,11 +1,15 @@
 #ifndef RCA_CONNECTOR_H
 #define RCA_CONNECTOR_H
 
+#include <memory>
+
 #include <QObject>
 #include <QTcpSocket>
 #include <QTcpServer>
+#include <QThread>
 
-#include <memory>
+#include "../MultiThreadingWorker/MultiThreadingWorker.h"
+
 
 class RCAConnector : public QObject
 {
@@ -14,7 +18,11 @@ public:
 
     RCAConnector(int port, QObject *parent = nullptr);
 
+    ~RCAConnector();
+
     void launch();
+
+    void deInitialiseSocket();
 
 signals:
 
@@ -42,11 +50,19 @@ private slots:
 
 protected:
 
-    quint16 _port;
+    MultiThreadingWorker        _workerInOtherThread;
 
-    QTcpSocket *                    _clientSocket = nullptr;
+    QThread                     _myThread;
 
-    std::unique_ptr<QTcpServer>	    _socket;
+    quint16                     _port;
+
+    QTcpSocket *                _clientSocket = nullptr;
+
+    std::unique_ptr<QTcpServer> _socket;
+
+signals:
+
+    void signalToInitialise(std::function<void()> func);
 
 };
 

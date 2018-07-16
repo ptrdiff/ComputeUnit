@@ -1,23 +1,53 @@
 #include "RCAConnector.h"
+
 #include <sstream>
 #include <array>
 #include <iostream>
-#include <QCoreApplication>
 #include <string>
 #include <vector>
 #include <chrono>
 
 RCAConnector::RCAConnector(int port, QObject* parent) :
 QObject(parent),
+_workerInOtherThread(),
+_myThread(),
 _port(static_cast<quint16>(port)),
-_socket(std::make_unique<QTcpServer>(this))
+_clientSocket(nullptr),
+_socket(nullptr)
 {
-    connect(_socket.get(), &QTcpServer::newConnection, this, &RCAConnector::slotMakeNewConnection);
+    this->moveToThread(&_myThread);
+    
+    _workerInOtherThread.moveToThread(&_myThread);
+
+    connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
+        &MultiThreadingWorker::slotToDoSomething);
+    
+    _myThread.start();
+
+    emit signalToInitialise([this]() {
+        this->launch();
+    });
+}
+
+RCAConnector::~RCAConnector() {
+    emit signalToInitialise([this]() {
+        this->deInitialiseSocket();
+    });
+    _myThread.wait();
+    std::cout << "RCAConnectorShuttiedDown" << std::endl;
 }
 
 void RCAConnector::launch()
 {
+    _socket.swap(std::unique_ptr<QTcpServer>(new QTcpServer(this)));
+    connect(_socket.get(), &QTcpServer::newConnection, this, &RCAConnector::slotMakeNewConnection);
     _socket->listen(QHostAddress::AnyIPv4, _port);
+}
+
+void RCAConnector::deInitialiseSocket()
+{
+    _socket.swap(std::unique_ptr<QTcpServer>(nullptr));
+    _myThread.quit();
 }
 
 void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w, double p,
@@ -25,7 +55,7 @@ void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w
 {
     std::stringstream str;
     str << "a " << x << ' ' << y << ' ' << z << ' ' << w << ' ' << p << ' ' << r << ' ';
-    std::cout << "answer to client:" << str.str() << std::endl;
+    std::cout << "answer to client:" << str.str() << '|' << std::endl;
     _clientSocket->write(str.str().c_str());
 }
 
@@ -58,7 +88,6 @@ void RCAConnector::slotReadFromClient()
             emit signalToSearchCube();
         } else if (token == "e") {
             emit signalShutDown();
-            QCoreApplication::exit(0);
             break;
         } else if (token == "m") {
             std::array<double, 6> coords{};

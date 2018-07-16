@@ -1,50 +1,31 @@
 ﻿#include <QtCore/QCoreApplication>
-#include "FanucAdapter/FanucAdapter.h"
-#include "RCAConnector/RCAConnector.h"
+
 #include "Executor/Executor.h"
 
 #include <iostream>
 
+Q_DECLARE_METATYPE(std::function<void()>)
+
+void initialise()
+{
+    qRegisterMetaType<std::function<void()>>("myLyambda");
+}
+
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
-
-    FanucAdapter fanucAdapter("172.27.221.60",59002);
-    //FanucAdapter fanucAdapter("127.0.0.1", 59002);
-
-    RCAConnector rcaConnector(9090);
-
-    Executor executor;
-
-    QObject::connect(&fanucAdapter, &FanucAdapter::signalToSendCurrentPosition, &executor, 
-        &Executor::slotNewRobotPostion);
-
-    QObject::connect(&executor, &Executor::signalToSendNewPointToRobot, &fanucAdapter, 
-        &FanucAdapter::slotSendNextPosition);
-
-    QObject::connect(&executor, &Executor::signalToSendCubePostion, &rcaConnector,
-        &RCAConnector::slotToSendCubePosition);
-
-    QObject::connect(&executor, &Executor::signalToSendCurrentPositionToClient, &rcaConnector,
-        &RCAConnector::slotToSendCurrentRobotPostion);
-    
-    QObject::connect(&rcaConnector, &RCAConnector::signalToSearchCube, &executor,
-        &Executor::slotFoundCubeTask);
-
-    QObject::connect(&rcaConnector, &RCAConnector::signalToMoveRobot, &executor,
-        &Executor::slotMoveRobot);
-
-    QObject::connect(&rcaConnector, &RCAConnector::signalShutDown, &executor,
-        &Executor::slotShutDown);
-
-    rcaConnector.launch();
-
     try {
-        fanucAdapter.startConnections();
+        QCoreApplication a(argc, argv);
+
+        initialise();
+
+        //Executor executor("172.27.221.60", 59002, 9090);
+        Executor executor("127.0.0.1", 59002, 9090);
+
+        return a.exec();
     }
     catch (std::exception& exp) {
-        std::cout << exp.what() << std::endl;
-        return -1;
+        std::cout << exp.what() << '\n';
+        throw exp;
     }
-    return a.exec();
+
 }

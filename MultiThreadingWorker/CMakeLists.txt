@@ -3,7 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project(FanucAdapter)
+project(MultiThreadingWorker)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -13,17 +13,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(${PROJECT_NAME} STATIC
-    FanucAdapter.h
-    FanucAdapter.cpp
+    MultiThreadingWorker.h
+    MultiThreadingWorker.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
-    Qt5::Network
-    MultiThreadingWorker
 )
-
-if(UNIX)
-    target_link_libraries(${PROJECT_NAME}
-        pthread)
-endif()

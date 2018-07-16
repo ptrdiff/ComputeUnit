@@ -1,17 +1,27 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
+#include <array>
+
 #include <QObject>
 
-#include <array>
+#include "../FanucAdapter/FanucAdapter.h"
+#include "../RCAConnector/RCAConnector.h"
+
 
 class Executor : public QObject
 {
     Q_OBJECT
 
 public:
+
+    static constexpr double TIME_FOR_RESPONSE = 30.;
+
+    static constexpr double DEFAULT_SPEED = 0.08;
     
-    Executor(QObject *parent = nullptr);
+    Executor(std::string, int, int, QObject *parent = nullptr);
+
+    void shutDown();
 
 signals:
 
@@ -44,6 +54,10 @@ protected:
     bool                    _wasFirstPoint{false};
 
     std::array<double, 6>   _currentCoords;
+
+    RCAConnector            _rcac;
+
+    FanucAdapter            _robot;
 };
 
 #endif // EXECUTOR_H
