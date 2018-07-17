@@ -1,31 +1,29 @@
 #include "FanucAdapter.h"
 
-#include <thread>
 #include <chrono>
-#include <sstream>
-#include <iostream>
 #include <cmath>
-#include <exception>
 
-FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent):
-QObject(parent),
-_workerInOtherThread(),
-_myThread(),
-_serverPort(static_cast<quint16>(port)),
-_socket(),
-_serverIP(std::move(serverIP))
+#include <QTextStream>
+
+FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent) :
+        QObject(parent),
+        _workerInOtherThread(),
+        _myThread(),
+        _serverIP(std::move(serverIP)),
+        _port(static_cast<quint16>(port)),
+        _socket(nullptr)
 {
+    connect(this, &FanucAdapter::signalToInitialise, &_workerInOtherThread,
+            &MultiThreadingWorker::slotToDoSomething);
+
     this->moveToThread(&_myThread);
 
     _workerInOtherThread.moveToThread(&_myThread);
 
-    connect(this, &FanucAdapter::signalToInitialise, &_workerInOtherThread,
-        &MultiThreadingWorker::slotToDoSomething);
-
     _myThread.start();
 
     emit signalToInitialise([this]() {
-        this->startConnections();
+        this->doConnect();
     });
 }
 
@@ -34,123 +32,73 @@ FanucAdapter::~FanucAdapter() {
         this->deInitialiseSocket();
     });
     _myThread.wait();
-    std::cout << "robotAdapterShuttedDown" << std::endl;
-}
-void FanucAdapter::startConnections()
-{
-    _socket.swap(std::unique_ptr<QTcpSocket>(new QTcpSocket(this)));
-    connect(_socket.get(), &QTcpSocket::readyRead, this, &FanucAdapter::slotReadFromServer);
-
-    connect(_socket.get(), &QTcpSocket::disconnected, this, &FanucAdapter::slotServerDisconnected,
-        Qt::QueuedConnection);
-    
-    bool flag = false;
-
-    constexpr int LONG_CONNECTION = 10'000;
-    
-    for (int i = 0; i < 3; ++i) {
-        if (TryConnect(LONG_CONNECTION))
-        {
-            flag = true;
-            break;
-        }
-        std::cout << "Can't create first connect to server" << std::endl;
-    }//*/
-    if (!flag)
-        throw std::exception();
-    std::cout << "Connect to server!" << std::endl;
-    
+    qDebug() << "robotAdapterShuttedDown";
 }
 
 void FanucAdapter::deInitialiseSocket() {
-    _socket.swap(std::unique_ptr<QTcpSocket>(nullptr));
+    _socket = std::unique_ptr<QTcpSocket>(nullptr);
     _myThread.quit();
 }
 
-void FanucAdapter::slotSendNextPosition(double j1, double j2, double j3, double j4, double j5, 
-    double j6, double speed, int ctrl)
+void FanucAdapter::doConnect()
 {
-    std::stringstream sstr;
-    sstr << "1 " << lround(j1 * 1'000) << ' ' << lround(j2 * 1'000) << ' ' << lround(j3 * 1'000)
-        << ' ' << lround(j4 * 1'000) << ' ' << lround(j5 * 1'000) << ' ' << lround(j6 * 1'000)
-        << ' ' << lround(speed * 1'000) << ' ' << ctrl << ' ';
-    std::cout << "was send: " << sstr.str() << '|' << std::endl;
-    if (_socket->isOpen())
-        _socket->write(sstr.str().c_str());
-    else
-        std::cout << "error with robot connection" << std::endl;
-}
+    _socket = std::make_unique<QTcpSocket>(this);
 
-void FanucAdapter::slotReadFromServer()
-{
-    std::cout << "FanucAdapter::slotReadFromServer()" <<std::endl;
-    std::string  newData = _socket->readAll().toStdString();
+    connect(_socket.get(), &QTcpSocket::disconnected,this, &FanucAdapter::slotToDisconnected);
+    connect(_socket.get(), &QTcpSocket::readyRead,this, &FanucAdapter::slotToReadyRead);
 
-    std::cout<< newData << std::endl;
+    qDebug() << "Connecting FanucAdapter";
 
-    std::vector<double> coords;
-    coords.reserve(6);
+    _socket->connectToHost(_serverIP.c_str(), _port);
 
-    for(size_t i=0;i<newData.size();++i)
-    {
-        if (newData[i] != ' ' && newData[i]<'0' && newData[i]>'9')
-            continue;
-        if(newData[i] == ' ')
-        {
-            if(coords.size() == 6)
-            {
-                emit signalToSendCurrentPosition(coords[0], coords[1], coords[2], coords[3],
-                    coords[4], coords[5]);
-                coords.clear();
-                newData = newData.substr(i);
-                i = 0;
-            }
-            coords.emplace_back(atof(newData.substr(i).c_str()));
-        }
-    }
-    if (coords.size() == 6)
-    {
-        emit signalToSendCurrentPosition(coords[0], coords[1], coords[2], coords[3],
-            coords[4], coords[5]);
-    }
-    //todo rewrite
-}
-
-void FanucAdapter::slotServerDisconnected()
-{
-    _socket->close();
-    makeConnection();
-}
-
-bool FanucAdapter::TryConnect(int timeOut)
-{
-    if (_socket->state() == QAbstractSocket::SocketState::ConnectedState)
-    {
-        return true;
-    }
-
-    if(_socket->isOpen())
-    {
-        _socket->close();
-    }
-
-    _socket->connectToHost(_serverIP.c_str(), _serverPort);
-
-    if(_socket->waitForConnected(timeOut))
+    if(_socket->waitForConnected(5000))
     {
         _socket->write("2 0 3 7 1 4 0.01 0");
-        //todo check it
-        return true;
     }
-    return false;
+    else
+    {
+        qDebug() << "Fanuc Error: " << _socket->errorString();
+    }
 }
 
-void FanucAdapter::makeConnection()
+void FanucAdapter::slotToDisconnected()
 {
-    while (!TryConnect())
+    if(_socket)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1'000));
-        std::cout << "try to connect ot robot" << std::endl;
+        _socket->close();
+        qDebug() << "FanucAdapter disconnected from server";
+        doConnect();
     }
-    std::cout << "connected to robot" << std::endl;
+}
+
+void FanucAdapter::slotWriteToServer(QVector<double> data)
+{
+    qInfo() << "FanucAdapter try write!";
+    QTextStream dataStream(_socket.get());
+    dataStream << 1;
+    for (auto i = 0; i + 1 < data.size(); ++i)
+    {
+        dataStream << ' ' << lround(data.at(i) * 1000);
+    }
+    dataStream << data.at(data.size()-1);
+    dataStream.flush();
+    qInfo() << "FanucAdapter finish write!";
+}
+
+void FanucAdapter::slotToReadyRead()
+{
+    qInfo() << "FanucAdapter try read!";
+    QTextStream locData(_socket.get());
+
+    QVector<double> coords;
+    while (!locData.atEnd())
+    {
+        double coord;
+        locData >> coord;
+        coords.push_back(coord);
+    }
+
+    qDebug() << "FanucAdapter read data from server";
+
+    emit signalNextComand(QString("a"),coords);
 }

@@ -1,97 +1,120 @@
 #include "Executor.h"
 
-#include <iostream>
+#include <sstream>
 
 #include <QCoreApplication>
+#include <QDebug>
 
-Executor::Executor(std::string robotIP, int robotPort, int clientPort, QObject* parent)try :
+Executor::Executor(std::string RCCenterIP, std::string robotIP, int robotPort, int clientPort, QObject* parent)try :
 QObject(parent),
 _wasFirstPoint(false),
 _currentCoords(),
+_rcac(std::move(RCCenterIP), clientPort),
 _robot(std::move(robotIP), robotPort),
-_rcac(clientPort)
+_commandTable({ 
+    { "m", &Executor::moveRobot },
+    { "a", &Executor::answerClient },
+    { "e", &Executor::shutDown }
+})
 {
-    QObject::connect(&_robot, &FanucAdapter::signalToSendCurrentPosition, this,
-        &Executor::slotNewRobotPostion, Qt::QueuedConnection);
+    QObject::connect(&_rcac, &RCAConnector::signalNextComand, this, &Executor::slotToApplyCommand);
+    QObject::connect(&_robot, &FanucAdapter::signalNextComand, this, &Executor::slotToApplyCommand);
 
-    QObject::connect(this, &Executor::signalToSendNewPointToRobot, &_robot,
-        &FanucAdapter::slotSendNextPosition, Qt::QueuedConnection);
-
-    QObject::connect(this, &Executor::signalToSendCubePostion, &_rcac,
-        &RCAConnector::slotToSendCubePosition, Qt::QueuedConnection);
-
-    QObject::connect(this, &Executor::signalToSendCurrentPositionToClient, &_rcac,
-        &RCAConnector::slotToSendCurrentRobotPostion, Qt::QueuedConnection);
-
-    QObject::connect(&_rcac, &RCAConnector::signalToSearchCube, this,
-        &Executor::slotFoundCubeTask, Qt::QueuedConnection);
-
-    QObject::connect(&_rcac, &RCAConnector::signalToMoveRobot, this,
-        &Executor::slotMoveRobot, Qt::QueuedConnection);
-
-    QObject::connect(&_rcac, &RCAConnector::signalShutDown, this,
-        &Executor::slotShutDown, Qt::QueuedConnection);
-    //*/
+    QObject::connect(this, &Executor::signalWriteToBuisness, &_rcac, &RCAConnector::slotWriteToServer);
+    QObject::connect(this, &Executor::signalWriteToRobot, &_robot, &FanucAdapter::slotWriteToServer);
+    qInfo() << "Executor started";
 }
 catch (std::exception& exp) {
-    std::cout << exp.what() << std::endl;
-    throw std::exception();
+    qCritical() << exp.what();
 }
+// TODO Fix bug "Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
 
-void Executor::slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6)
+
+void Executor::slotToApplyCommand(const QString& id,const QVector<double>& params)
 {
-    std::cout << "Executor::slotNewRobotPostion" << std::endl;
-    emit signalToSendCurrentPositionToClient(j1, j2, j3, j4, j5, j6);
-}
-
-void Executor::slotMoveRobot(double j1, double j2, double j3, double j4, double j5, double j6,
-    int ctrl)
-{
-    std::cout << "move command" << std::endl;
-
-    double speed=0.01;
-    if (_wasFirstPoint) 
+    if(_commandTable.count(id.toStdString()) == 0)
     {
-        speed = (abs(_currentCoords[0] - j1) + abs(_currentCoords[1] - j2) + 
-            abs(_currentCoords[2] - j3) + abs(_currentCoords[3] - j4) + 
-            abs(_currentCoords[4] - j5) + abs(_currentCoords[5] - j6))/ TIME_FOR_RESPONSE;
+        qWarning() << "Unknow command: " << id;
+    }
+    else
+    {
+        (this->*_commandTable[id.toStdString()])(params);
+    }
+}
+
+void Executor::moveRobot(QVector<double> j)
+{
+    if (j.size() < 7)
+    {
+        qCritical() << "too less arguments for moving robot";
+    }
+    if (j.size() > 7)
+    {
+        qWarning() << "too many arguments for moving robot";
+    }
+
+    std::stringstream strStream;
+    for (auto it : j)
+        strStream << ' ' << it;
+    qDebug() << "move command" << strStream.str().c_str();
+    
+    double speed = DEFAULT_SPEED;
+    
+    if (_wasFirstPoint)
+    {
+        speed = 0.;
+
+        for(size_t i=0;i<6;++i)
+        {
+            speed += abs(_currentCoords[i] - j[i]);
+        }
+
+        speed /= TIME_FOR_RESPONSE;
     }
 
     _wasFirstPoint = true;
-    _currentCoords[0] = j1;
-    _currentCoords[1] = j2;
-    _currentCoords[2] = j3;
-    _currentCoords[3] = j4;
-    _currentCoords[4] = j5;
-    _currentCoords[5] = j6;
-    emit signalToSendNewPointToRobot(j1, j2, j3, j4, j5, j6, speed, ctrl);
-}
-
-void Executor::slotFoundCubeTask()
-{
-    std::cout << "Executor::slotFoundCubeTask" << std::endl;
-    if(_wasFirstPoint)
+    for (size_t i = 0; i<6; ++i)
     {
-        emit signalToFindCubePostion(_currentCoords[0], _currentCoords[1], _currentCoords[2],
-            _currentCoords[3], _currentCoords[4], _currentCoords[5]);
+        _currentCoords[i] = j[i];
     }
+
+    j.push_back(speed);
+    std::swap(j[6], j[7]);
+
+    emit signalWriteToRobot(j);
 }
 
-void Executor::slotNewCubePostion(double x, double y, double z, double w, double p, double r)
+void Executor::answerClient(QVector<double> j)
 {
-    std::cout << "Executor::slotNewCubePostion" << std::endl;
-    emit signalToSendCubePostion(x, y, z, w, p, r);
+    if(j.size() < 6)
+    {
+        qCritical() << "too less arguments for answer";
+    }
+    if(j.size() > 6)
+    {
+        qWarning() << "too many arguments for answer";
+    }
+    
+    std::stringstream strStream;
+    for (auto it : j)
+        strStream << ' ' << it;
+    qDebug() << "answer to client" << strStream.str().c_str();
+    
+    emit signalWriteToBuisness(j);
 }
 
-void Executor::slotShutDown()
+void Executor::shutDown(QVector<double> params)
 {
-    shutDown();
+    if(!params.empty())
+    {
+        qWarning() << "too much parametrs in shutting down";
+    }
+    
+    qDebug() << "system is shutting down";
+    emit signalWriteToRobot(QVector<double>{_currentCoords[0], _currentCoords[1], _currentCoords[2],
+        _currentCoords[3], _currentCoords[4], _currentCoords[5], DEFAULT_SPEED, 1.0});
     QCoreApplication::exit(0);
 }
 
-void Executor::shutDown()
-{
-    std::cout << "system is shutting down" << std::endl;
-    emit signalToSendNewPointToRobot(_currentCoords[0], _currentCoords[1], _currentCoords[2],
-        _currentCoords[3], _currentCoords[4], _currentCoords[5], DEFAULT_SPEED, 1);
-}
+//todo improve number of parametrs checking
+//todo remove redundent metods

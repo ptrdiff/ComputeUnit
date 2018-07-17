@@ -1,31 +1,28 @@
 #include "RCAConnector.h"
 
-#include <sstream>
-#include <array>
-#include <iostream>
-#include <string>
-#include <vector>
 #include <chrono>
 
-RCAConnector::RCAConnector(int port, QObject* parent) :
+#include <QTextStream>
+
+RCAConnector::RCAConnector(std::string serverIP, int port, QObject* parent) :
 QObject(parent),
 _workerInOtherThread(),
 _myThread(),
+_serverIP(std::move(serverIP)),
 _port(static_cast<quint16>(port)),
-_clientSocket(nullptr),
 _socket(nullptr)
 {
+    connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
+            &MultiThreadingWorker::slotToDoSomething);
+
     this->moveToThread(&_myThread);
     
     _workerInOtherThread.moveToThread(&_myThread);
-
-    connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
-        &MultiThreadingWorker::slotToDoSomething);
     
     _myThread.start();
 
     emit signalToInitialise([this]() {
-        this->launch();
+        this->doConnect();
     });
 }
 
@@ -34,77 +31,70 @@ RCAConnector::~RCAConnector() {
         this->deInitialiseSocket();
     });
     _myThread.wait();
-    std::cout << "RCAConnectorShuttiedDown" << std::endl;
-}
-
-void RCAConnector::launch()
-{
-    _socket.swap(std::unique_ptr<QTcpServer>(new QTcpServer(this)));
-    connect(_socket.get(), &QTcpServer::newConnection, this, &RCAConnector::slotMakeNewConnection);
-    _socket->listen(QHostAddress::AnyIPv4, _port);
+    qDebug() << "RCAConnectorShuttiedDown";
 }
 
 void RCAConnector::deInitialiseSocket()
 {
-    _socket.swap(std::unique_ptr<QTcpServer>(nullptr));
+    _socket = std::unique_ptr<QTcpSocket>(nullptr);
     _myThread.quit();
+    qDebug() << "RCAConnector deInitialiseSocket";
 }
 
-void RCAConnector::slotToSendCubePosition(double x, double y, double z, double w, double p,
-    double r)
+void RCAConnector::slotToReadyRead()
 {
-    std::stringstream str;
-    str << "a " << x << ' ' << y << ' ' << z << ' ' << w << ' ' << p << ' ' << r << ' ';
-    std::cout << "answer to client:" << str.str() << '|' << std::endl;
-    _clientSocket->write(str.str().c_str());
+    qInfo() << "RCAConnector try read!";
+    QTextStream locData(_socket.get());
+    QString token;
+    locData >> token;
+
+    QVector<double> coords;
+    while (!locData.atEnd())
+    {
+        double coord;
+        locData >> coord;
+        coords.push_back(coord);
+    }
+
+    qDebug() << "RCAConnector read data from server: " << token << coords.size();
+
+    emit signalNextComand(token,coords);
 }
 
-void RCAConnector::slotToSendCurrentRobotPostion(double j1, double j2, double j3, double j4,
-    double j5, double j6)
+void RCAConnector::slotToDisconnected()
 {
-    std::stringstream str;
-    str << "r " << j1 << ' ' << j2 << ' ' << j3 << ' ' << j4 << ' ' << j5 << ' ' << j6 << ' ';
-    std::cout << "answer to client:" << str.str() << std::endl;
-    _clientSocket->write(str.str().c_str());
-}
-
-void RCAConnector::slotMakeNewConnection()
-{
-    std::cout << "new client connected!" << std::endl;
-
-    _clientSocket = _socket->nextPendingConnection();
-
-    connect(_clientSocket, &QTcpSocket::disconnected, this, &RCAConnector::slotClientDisconnected);
-    connect(_clientSocket, &QTcpSocket::readyRead, this, &RCAConnector::slotReadFromClient);
-}
-
-void RCAConnector::slotReadFromClient()
-{
-    std::string token;
-    std::stringstream locData = std::stringstream(_clientSocket->readAll().toStdString());
-
-    while (locData >> token) {
-        if (token == "f") {
-            emit signalToSearchCube();
-        } else if (token == "e") {
-            emit signalShutDown();
-            break;
-        } else if (token == "m") {
-            std::array<double, 6> coords{};
-            int param;
-            for (double &coord : coords) {
-                locData >> coord;
-            }
-            locData >> param;
-            emit signalToMoveRobot(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5], param);
-        }
-        else {
-            locData.clear();
-        }
+    if(_socket)
+    {
+        _socket->close();
+        qDebug() << "RCAConnector disconnected from server";
+        doConnect();
     }
 }
 
-void RCAConnector::slotClientDisconnected()
+void RCAConnector::doConnect()
 {
-    _clientSocket->close();
+    _socket = std::make_unique<QTcpSocket>(this);
+
+    connect(_socket.get(), &QTcpSocket::disconnected,this, &RCAConnector::slotToDisconnected);
+    connect(_socket.get(), &QTcpSocket::readyRead,this, &RCAConnector::slotToReadyRead);
+
+    qDebug() << "Connecting RCAConnector";
+
+    _socket->connectToHost(_serverIP.c_str(), _port);
+
+    if(!_socket->waitForConnected(5000))
+    {
+        qDebug() << "RCAConnector Error: " << _socket->errorString();
+    }
+}
+
+void RCAConnector::slotWriteToServer(QVector<double> data)
+{
+    qInfo() << "RCAConnector try write!";
+    QTextStream dataStream(_socket.get());
+    for (auto &i : data)
+    {
+        dataStream << i << ' ';
+    }
+    dataStream.flush();
 }
