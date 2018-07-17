@@ -5,58 +5,68 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-Executor::Executor(std::string RCCenterIP, std::string robotIP, int robotPort, int clientPort, QObject* parent)try :
+Executor::Executor(std::string robotServerIP, const int robotServerPort, 
+    std::string controlCenterIP, const int controlCenterPort, QObject* parent) try :
 QObject(parent),
 _wasFirstPoint(false),
-_currentCoords(),
-_rcac(std::move(RCCenterIP), clientPort),
-_robot(std::move(robotIP), robotPort),
+_lastSendPoint(),
+_controlCenterAdapter(std::move(controlCenterIP), controlCenterPort),
+_robotAdapter(std::move(robotServerIP), robotServerPort),
 _commandTable({ 
-    { "m", &Executor::moveRobot },
-    { "a", &Executor::answerClient },
-    { "e", &Executor::shutDown }
+    { "m", {&Executor::sendRobotMoveCommand, 7} },
+    { "a", {&Executor::sendControlCenterRobotPosition, 6} },
+    { "e", {&Executor::shutDownComputeUnit, 0} }
 })
 {
-    QObject::connect(&_rcac, &RCAConnector::signalNextComand, this, &Executor::slotToApplyCommand);
-    QObject::connect(&_robot, &FanucAdapter::signalNextComand, this, &Executor::slotToApplyCommand);
+    QObject::connect(&_controlCenterAdapter, &RCAConnector::signalNextComand, this, &Executor::slotToApplyCommand);
+    QObject::connect(&_robotAdapter, &FanucAdapter::signalNextComand, this, &Executor::slotToApplyCommand);
 
-    QObject::connect(this, &Executor::signalWriteToBuisness, &_rcac, &RCAConnector::slotWriteToServer);
-    QObject::connect(this, &Executor::signalWriteToRobot, &_robot, &FanucAdapter::slotWriteToServer);
+    QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterAdapter,
+                     &RCAConnector::slotWriteToServer);
+    QObject::connect(this, &Executor::signalWriteToRobot, &_robotAdapter,
+                     &FanucAdapter::slotWriteToServer);
     qInfo() << "Executor started";
 }
 catch (std::exception& exp) {
     qCritical() << exp.what();
 }
-// TODO Fix bug "Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
+// TODO Fix bug: 
+//"Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
 
 
 void Executor::slotToApplyCommand(const QString& id,const QVector<double>& params)
 {
     if(_commandTable.count(id.toStdString()) == 0)
     {
-        qWarning() << "Unknow command: " << id;
+        qCritical() << "Error unknow command \"" << id << "\"";
     }
     else
     {
-        (this->*_commandTable[id.toStdString()])(params);
+        const auto curFunction = _commandTable[id.toStdString()];
+        if(curFunction.second > params.size())
+        {
+            qCritical() << "Error too less arguments for \"" << id << "\" command(need minimum " 
+                        << curFunction.second <<", has " << params.size() << ").";
+        }
+        else
+        {
+            if(curFunction.second < params.size())
+            {
+                qWarning() << "Waring too much arguments for \"" << id << "\" command(need "
+                           << curFunction.first << ", has " << params.size() << ").";
+            }
+            (this->*curFunction.first)(params);
+        }
     }
 }
 
-void Executor::moveRobot(QVector<double> j)
+void Executor::sendRobotMoveCommand(QVector<double> params)
 {
-    if (j.size() < 7)
-    {
-        qCritical() << "too less arguments for moving robot";
-    }
-    if (j.size() > 7)
-    {
-        qWarning() << "too many arguments for moving robot";
-    }
-
     std::stringstream strStream;
-    for (auto it : j)
+    for (auto it : params)
         strStream << ' ' << it;
-    qDebug() << "move command" << strStream.str().c_str();
+    
+    qDebug() << "move command with parametrs: " << strStream.str().c_str();
     
     double speed = DEFAULT_SPEED;
     
@@ -66,55 +76,38 @@ void Executor::moveRobot(QVector<double> j)
 
         for(size_t i=0;i<6;++i)
         {
-            speed += abs(_currentCoords[i] - j[i]);
+            speed += abs(_lastSendPoint[i] - params[i]);
         }
 
-        speed /= TIME_FOR_RESPONSE;
+        speed = std::min(speed / TIME_FOR_RESPONSE, MAX_SPEED);
     }
 
     _wasFirstPoint = true;
     for (size_t i = 0; i<6; ++i)
     {
-        _currentCoords[i] = j[i];
+        _lastSendPoint[i] = params[i];
     }
 
-    j.push_back(speed);
-    std::swap(j[6], j[7]);
+    params.push_back(speed);
+    std::swap(params[6], params[7]);
 
-    emit signalWriteToRobot(j);
+    emit signalWriteToRobot(params);
 }
 
-void Executor::answerClient(QVector<double> j)
+void Executor::sendControlCenterRobotPosition(QVector<double> params)
 {
-    if(j.size() < 6)
-    {
-        qCritical() << "too less arguments for answer";
-    }
-    if(j.size() > 6)
-    {
-        qWarning() << "too many arguments for answer";
-    }
-    
     std::stringstream strStream;
-    for (auto it : j)
+    for (auto it : params)
         strStream << ' ' << it;
-    qDebug() << "answer to client" << strStream.str().c_str();
+    qDebug() << "answer to client with parametrs: " << strStream.str().c_str();
     
-    emit signalWriteToBuisness(j);
+    emit signalWriteToControlCenter(params);
 }
 
-void Executor::shutDown(QVector<double> params)
+void Executor::shutDownComputeUnit(QVector<double> params)
 {
-    if(!params.empty())
-    {
-        qWarning() << "too much parametrs in shutting down";
-    }
-    
     qDebug() << "system is shutting down";
-    emit signalWriteToRobot(QVector<double>{_currentCoords[0], _currentCoords[1], _currentCoords[2],
-        _currentCoords[3], _currentCoords[4], _currentCoords[5], DEFAULT_SPEED, 1.0});
+    emit signalWriteToRobot(QVector<double>{_lastSendPoint[0], _lastSendPoint[1], _lastSendPoint[2],
+        _lastSendPoint[3], _lastSendPoint[4], _lastSendPoint[5], DEFAULT_SPEED, 1.0});
     QCoreApplication::exit(0);
 }
-
-//todo improve number of parametrs checking
-//todo remove redundent metods

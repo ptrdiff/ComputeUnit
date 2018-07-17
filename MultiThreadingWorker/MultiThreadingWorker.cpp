@@ -4,7 +4,7 @@ MultiThreadingWorker::MultiThreadingWorker(QObject *parent):
 QObject(parent)
 {}
 
-void MultiThreadingWorker::slotToDoSomething(std::function<void()> func)
+void MultiThreadingWorker::slotToDoSomething(const std::function<void()>& func)
 {
     func();
     emit signalWorkReady();
