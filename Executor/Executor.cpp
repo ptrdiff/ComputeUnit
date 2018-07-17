@@ -17,7 +17,7 @@ _commandTable({
     { "e", &Executor::shutDown }
 })
 {
-    QObject::connect(&_rcac, &RCAConnector::signalNextComand, this, &Executor::slotToApplyCommand);
+    QObject::connect(&_rcac, &RCAConnector::signalNextCommand, this, &Executor::slotToApplyCommand);
     QObject::connect(&_robot, &FanucAdapter::signalNextComand, this, &Executor::slotToApplyCommand);
 
     QObject::connect(this, &Executor::signalWriteToBuisness, &_rcac, &RCAConnector::slotWriteToServer);
