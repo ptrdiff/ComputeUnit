@@ -92,7 +92,7 @@ void Executor::slotToApplyCommand(const QString& id,const QVector<double>& param
     }
 }
 
-void Executor::moveRobot(const QVector<double>& j)
+void Executor::moveRobot(QVector<double> j)
 {
     if (j.size() < 7)
     {
@@ -129,10 +129,13 @@ void Executor::moveRobot(const QVector<double>& j)
         _currentCoords[i] = j[i];
     }
 
-    emit signalToSendNewPointToRobot(j[0], j[1], j[2], j[3], j[4], j[5], speed, j[6]);
+    j.push_back(speed);
+    std::swap(j[6], j[7]);
+
+    emit signalWriteToRobot(j);
 }
 
-void Executor::answerClient(const QVector<double>& j)
+void Executor::answerClient(QVector<double> j)
 {
     if(j.size() < 6)
     {
@@ -149,10 +152,10 @@ void Executor::answerClient(const QVector<double>& j)
         strStream << ' ' << it;
     qDebug() << "answer to client" << strStream.str().c_str();
     
-    emit signalToSendCurrentPositionToClient(j[0], j[1], j[2], j[3], j[4], j[5]);
+    emit signalWriteToBuisness(j);
 }
 
-void Executor::shutDown(const QVector<double>& params)
+void Executor::shutDown(QVector<double> params)
 {
     if(!params.empty())
     {
@@ -164,3 +167,6 @@ void Executor::shutDown(const QVector<double>& params)
         _currentCoords[3], _currentCoords[4], _currentCoords[5], DEFAULT_SPEED, 1);
     QCoreApplication::exit(0);
 }
+
+//todo improve number of parametrs checking
+//todo remove redundent metods

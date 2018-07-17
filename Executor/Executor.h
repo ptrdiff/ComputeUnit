@@ -36,6 +36,10 @@ signals:
     void signalToFindCubePostion(double j1, double j2, double j3, double j4, double j5,
         double j6);
 
+    void signalWriteToRobot(QVector<double>);
+
+    void signalWriteToBuisness(QVector<double>);
+
 public slots:
 
     void slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6);
@@ -53,7 +57,7 @@ public slots:
 
 private:
 
-    using executableCommand = void(Executor::*)(const QVector<double>&);
+    using executableCommand = void(Executor::*)(QVector<double>);
 
     bool                    _wasFirstPoint{false};
 
@@ -65,11 +69,11 @@ private:
 
     std::unordered_map<std::string, executableCommand> _commandTable;
 
-    void moveRobot(const QVector<double>&);
+    void moveRobot(QVector<double>);
 
-    void answerClient(const QVector<double>&);
+    void answerClient(QVector<double>);
 
-    void shutDown(const QVector<double>&);
+    void shutDown(QVector<double>);
 };
 
 #endif // EXECUTOR_H
