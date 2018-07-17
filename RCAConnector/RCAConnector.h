@@ -5,48 +5,33 @@
 
 #include <QObject>
 #include <QTcpSocket>
-#include <QTcpServer>
 #include <QThread>
 
 #include "../MultiThreadingWorker/MultiThreadingWorker.h"
-
 
 class RCAConnector : public QObject
 {
     Q_OBJECT
 public:
 
-    RCAConnector(int port, QObject *parent = nullptr);
+    explicit RCAConnector(std::string serverIP, int port, QObject* parent);
 
-    ~RCAConnector();
+    ~RCAConnector() override;
 
-    void launch();
+    void doConnect();
 
     void deInitialiseSocket();
 
 signals:
 
-    void signalToMoveRobot(double j1, double j2, double j3, double j4, double j5, double j6,
-        int ctrl);
-
-    void signalToSearchCube();
-
-    void signalShutDown();
+    void signalNextComand(QString, QVector<double>);
 
 public slots:
 
-    void slotToSendCubePosition(double x, double y, double z, double w, double p, double r);
+    void slotToDisconnected();
+    void slotToReadyRead();
 
-    void slotToSendCurrentRobotPostion(double j1, double j2, double j3, double j4, double j5,
-        double j6);
-
-private slots:
-
-    void slotMakeNewConnection();
-
-    void slotReadFromClient();
-
-    void slotClientDisconnected();
+    void slotWriteToServer(QVector<double>);
 
 protected:
 
@@ -54,11 +39,11 @@ protected:
 
     QThread                     _myThread;
 
+    std::string                 _serverIP;
+
     quint16                     _port;
 
-    QTcpSocket *                _clientSocket = nullptr;
-
-    std::unique_ptr<QTcpServer> _socket;
+    std::unique_ptr<QTcpSocket> _socket;
 
 signals:
 

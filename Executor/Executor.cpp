@@ -8,8 +8,8 @@ Executor::Executor(std::string robotIP, int robotPort, int clientPort, QObject* 
 QObject(parent),
 _wasFirstPoint(false),
 _currentCoords(),
-_robot(std::move(robotIP), robotPort),
-_rcac(clientPort)
+_rcac(clientPort),
+_robot(std::move(robotIP), robotPort)
 {
     QObject::connect(&_robot, &FanucAdapter::signalToSendCurrentPosition, this,
         &Executor::slotNewRobotPostion, Qt::QueuedConnection);
