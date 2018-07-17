@@ -18,8 +18,8 @@ _commandTable({
     { "e", {&Executor::shutDownComputeUnit, 0} }
 })
 {
-    QObject::connect(&_controlCenterAdapter, &RCAConnector::signalNextComand, this, &Executor::slotToApplyCommand);
-    QObject::connect(&_robotAdapter, &FanucAdapter::signalNextComand, this, &Executor::slotToApplyCommand);
+    QObject::connect(&_rcac, &RCAConnector::signalNextCommand, this, &Executor::slotToApplyCommand);
+    QObject::connect(&_robot, &FanucAdapter::signalNextComand, this, &Executor::slotToApplyCommand);
 
     QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterAdapter,
                      &RCAConnector::slotWriteToServer);

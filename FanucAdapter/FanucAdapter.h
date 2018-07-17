@@ -9,47 +9,47 @@
 
 #include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
+class FanucAdapter : public QObject
+{
+ Q_OBJECT
 
-class FanucAdapter : public QObject {
-Q_OBJECT
+ public:
 
-public:
+  FanucAdapter(std::string serverIP, int port, QObject *parent = nullptr);
 
-    FanucAdapter(std::string serverIP, int port, QObject *parent = nullptr);
+  ~FanucAdapter() override;
 
-    ~FanucAdapter() override;
+  void doConnect();
 
-    void doConnect();
+  void deInitialiseSocket();
 
-    void deInitialiseSocket();
+ signals:
 
-signals:
+  void signalNextComand(QString, QVector<double>);
 
-    void signalNextComand(QString, QVector<double>);
+ public slots:
 
-public slots:
+  void slotToDisconnected();
 
-    void slotToDisconnected();
+  void slotToReadyRead();
 
-    void slotToReadyRead();
+  void slotWriteToServer(QVector<double>);
 
-    void slotWriteToServer(QVector<double>);
+ protected:
 
-protected:
+  MultiThreadingWorker _workerInOtherThread;
 
-    MultiThreadingWorker _workerInOtherThread;
+  QThread _myThread;
 
-    QThread _myThread;
+  std::string _serverIP;
 
-    std::string _serverIP;
+  quint16 _port;
 
-    quint16 _port;
+  std::unique_ptr<QTcpSocket> _socket;
 
-    std::unique_ptr<QTcpSocket> _socket;
+ signals:
 
-signals:
-
-    void signalToInitialise(std::function<void()> func);
+  void signalToInitialise(std::function<void()> func);
 };
 
 #endif // FANUC_ADAPTER_H
