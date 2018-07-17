@@ -1,15 +1,8 @@
 #include "RCAConnector.h"
 
-#include <sstream>
-#include <array>
-#include <memory>
-#include <iostream>
-#include <string>
-#include <utility> #include <vector>
 #include <chrono>
 
-#include <QCoreApplication>
-#include <QtCore/QDataStream>
+#include <QTextStream>
 
 RCAConnector::RCAConnector(std::string serverIP, int port, QObject* parent) :
 QObject(parent),
@@ -19,8 +12,6 @@ _serverIP(std::move(serverIP)),
 _port(static_cast<quint16>(port)),
 _socket(nullptr)
 {
-    connect(_socket.get(), &QTcpSocket::disconnected,this, &RCAConnector::slotToDisconnected);
-    connect(_socket.get(), &QTcpSocket::readyRead,this, &RCAConnector::slotToReadyRead);
     connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
             &MultiThreadingWorker::slotToDoSomething);
 
@@ -52,8 +43,8 @@ void RCAConnector::deInitialiseSocket()
 
 void RCAConnector::slotToReadyRead()
 {
-    QDataStream locData(_socket.get());
-
+    qInfo() << "RCAConnector try read!";
+    QTextStream locData(_socket.get());
     QString token;
     locData >> token;
 
@@ -65,20 +56,27 @@ void RCAConnector::slotToReadyRead()
         coords.push_back(coord);
     }
 
-    qDebug() << "RCAConnector read data from server";
+    qDebug() << "RCAConnector read data from server: " << token << coords.size();
 
     emit signalNextComand(token,coords);
 }
 
 void RCAConnector::slotToDisconnected()
 {
-    _socket->close();
-    qDebug() << "RCAConnector disconnected from server";
+    if(_socket)
+    {
+        _socket->close();
+        qDebug() << "RCAConnector disconnected from server";
+        doConnect();
+    }
 }
 
 void RCAConnector::doConnect()
 {
-    _socket = new QTcpSocket(this);
+    _socket = std::make_unique<QTcpSocket>(this);
+
+    connect(_socket.get(), &QTcpSocket::disconnected,this, &RCAConnector::slotToDisconnected);
+    connect(_socket.get(), &QTcpSocket::readyRead,this, &RCAConnector::slotToReadyRead);
 
     qDebug() << "Connecting RCAConnector";
 
@@ -86,15 +84,17 @@ void RCAConnector::doConnect()
 
     if(!_socket->waitForConnected(5000))
     {
-        qDebug() << "Error: " << _socket->errorString();
+        qDebug() << "RCAConnector Error: " << _socket->errorString();
     }
 }
 
 void RCAConnector::slotWriteToServer(QVector<double> data)
 {
-    QDataStream dataStream;
-    dataStream << data;
-    QByteArray byteArray;
-    dataStream >> byteArray;
-    _socket->write(byteArray);
+    qInfo() << "RCAConnector try write!";
+    QTextStream dataStream(_socket.get());
+    for (auto &i : data)
+    {
+        dataStream << i << ' ';
+    }
+    dataStream.flush();
 }

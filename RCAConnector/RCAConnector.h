@@ -14,7 +14,7 @@ class RCAConnector : public QObject
     Q_OBJECT
 public:
 
-    explicit RCAConnector(std::string serverIP, int port, QObject* parent);
+    explicit RCAConnector(std::string serverIP, int port, QObject* parent = nullptr);
 
     ~RCAConnector() override;
 

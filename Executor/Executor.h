@@ -21,37 +21,15 @@ public:
 
     static constexpr double DEFAULT_SPEED = 0.1;
     
-    Executor(std::string, int, int, QObject *parent = nullptr);
+    Executor(std::string, std::string, int, int, QObject *parent = nullptr);
 
 signals:
-
-    void signalToSendNewPointToRobot(double j1, double j2, double j3, double j4, double j5,
-        double j6, double speed, int ctrl);
-
-    void signalToSendCurrentPositionToClient(double j1, double j2, double j3, double j4, 
-        double j5, double j6);
-
-    void signalToSendCubePostion(double x, double y, double z, double w, double p, double r);
-
-    void signalToFindCubePostion(double j1, double j2, double j3, double j4, double j5,
-        double j6);
 
     void signalWriteToRobot(QVector<double>);
 
     void signalWriteToBuisness(QVector<double>);
 
 public slots:
-
-    void slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6);
-
-    void slotMoveRobot(double j1, double j2, double j3, double j4, double j5,
-        double j6, int ctrl);
-
-    void slotFoundCubeTask();
-
-    void slotNewCubePostion(double x, double y, double z, double w, double p, double r);
-
-    void slotShutDown();
 
     void slotToApplyCommand(const QString& id,const QVector<double>& params);
 

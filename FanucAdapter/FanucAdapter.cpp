@@ -1,13 +1,9 @@
 #include "FanucAdapter.h"
 
-#include <thread>
 #include <chrono>
-#include <sstream>
-#include <iostream>
 #include <cmath>
-#include <exception>
 
-#include <QDataStream>
+#include <QTextStream>
 
 FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent) :
         QObject(parent),
@@ -17,8 +13,6 @@ FanucAdapter::FanucAdapter(std::string serverIP, int port, QObject* parent) :
         _port(static_cast<quint16>(port)),
         _socket(nullptr)
 {
-    connect(_socket.get(), &QTcpSocket::disconnected,this, &FanucAdapter::slotToDisconnected);
-    connect(_socket.get(), &QTcpSocket::readyRead,this, &FanucAdapter::slotToReadyRead);
     connect(this, &FanucAdapter::signalToInitialise, &_workerInOtherThread,
             &MultiThreadingWorker::slotToDoSomething);
 
@@ -48,7 +42,10 @@ void FanucAdapter::deInitialiseSocket() {
 
 void FanucAdapter::doConnect()
 {
-    _socket = new QTcpSocket(this);
+    _socket = std::make_unique<QTcpSocket>(this);
+
+    connect(_socket.get(), &QTcpSocket::disconnected,this, &FanucAdapter::slotToDisconnected);
+    connect(_socket.get(), &QTcpSocket::readyRead,this, &FanucAdapter::slotToReadyRead);
 
     qDebug() << "Connecting FanucAdapter";
 
@@ -60,27 +57,38 @@ void FanucAdapter::doConnect()
     }
     else
     {
-        qDebug() << "Error: " << _socket->errorString();
+        qDebug() << "Fanuc Error: " << _socket->errorString();
     }
 }
 
 void FanucAdapter::slotToDisconnected()
 {
-    _socket->close();
+    if(_socket)
+    {
+        _socket->close();
+        qDebug() << "FanucAdapter disconnected from server";
+        doConnect();
+    }
 }
 
 void FanucAdapter::slotWriteToServer(QVector<double> data)
 {
-    QDataStream dataStream;
-    dataStream << 1 <<data;
-    QByteArray byteArray;
-    dataStream >> byteArray;
-    _socket->write(byteArray);
+    qInfo() << "FanucAdapter try write!";
+    QTextStream dataStream(_socket.get());
+    dataStream << 1;
+    for (auto i = 0; i + 1 < data.size(); ++i)
+    {
+        dataStream << ' ' << lround(data.at(i) * 1000);
+    }
+    dataStream << data.at(data.size()-1);
+    dataStream.flush();
+    qInfo() << "FanucAdapter finish write!";
 }
 
 void FanucAdapter::slotToReadyRead()
 {
-    QDataStream locData(_socket.get());
+    qInfo() << "FanucAdapter try read!";
+    QTextStream locData(_socket.get());
 
     QVector<double> coords;
     while (!locData.atEnd())
