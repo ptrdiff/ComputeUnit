@@ -8,9 +8,9 @@ Q_DECLARE_METATYPE(std::function<void()>)
 
 void initialise()
 {
-  qRegisterMetaType<std::function<void()>>("myLyambda");
-  qRegisterMetaType<QVector<double>>("myQVectorDouble");
-  qInfo() << "Meta tpes registered";
+  qRegisterMetaType<std::function<void()>>("Lambda");
+  qRegisterMetaType<QVector<double>>("QVectorDouble");
+  qInfo() << "Meta types registered";
 }
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
@@ -35,7 +35,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
       QString::number(context.line),
       msgType
   ).toStdString();
-} // TODO add feature to change stream output.
+} // TODO add feature to change stream output and formatting output(table or something like this)
 
 int main(int argc, char *argv[])
 {

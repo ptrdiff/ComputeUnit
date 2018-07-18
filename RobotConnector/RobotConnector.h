@@ -39,7 +39,7 @@ class RobotConnector : public QObject
 
   MultiThreadingWorker _workerInOtherThread;
 
-  QThread _myThread;
+  QThread _Thread;
 
   std::string _serverIP;
 
