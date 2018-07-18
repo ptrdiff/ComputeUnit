@@ -25,3 +25,5 @@ target_link_libraries(${PROJECT_NAME}
     SensorAdapter
     MultiThreadingWorker
 )
+
+add_subdirectory ("Tests")
