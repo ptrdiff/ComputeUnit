@@ -68,7 +68,7 @@ public slots:
      * \param[in] id        Id of command.
      * \param[in] params    Parametrs for this command.
      */
-    void slotToApplyCommand(const QString& id,const QVector<double>& params);
+    void slotToApplyCommand(const QString& id, const QVector<double>& params);
 
 private:
 
@@ -90,12 +90,12 @@ private:
     /**
      * \brief Adaptor for communication with buismess layer.
      */
-    RCAConnector                                                        _controlCenterAdapter;
+    RCAConnector                                                        _controlCenterConnector;
 
     /**
      * \brief Adaptor for communication with robot.
      */
-    RobotConnector                                                        _robotAdapter;
+    RobotConnector                                                      _robotConnector;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it

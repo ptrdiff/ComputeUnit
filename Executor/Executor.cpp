@@ -4,29 +4,49 @@
 
 #include <QCoreApplication>
 
+/**
+ * \brief               Function for get string from elements of QVector
+ * \param[in] params    Qvector for casting.
+ * \return              String with values of vector.
+ */
+QString toQString(QVector<double> params)
+{
+    std::stringstream strStream;
+    for (auto it : params)
+        strStream << ' ' << it;
+    return strStream.str().c_str();
+}
+
 Executor::Executor(std::string robotServerIP, const int robotServerPort, 
     std::string controlCenterIP, const int controlCenterPort, QObject* parent) try :
 QObject(parent),
 _wasFirstPoint(false),
 _lastSendPoint(),
-_controlCenterAdapter(std::move(controlCenterIP), controlCenterPort),
-_robotAdapter(std::move(robotServerIP), robotServerPort),
+_controlCenterConnector(std::move(controlCenterIP), controlCenterPort),
+_robotConnector(std::move(robotServerIP), robotServerPort),
 _commandTable({ 
     { "m", {&Executor::sendRobotMoveCommand, 7} },
     { "a", {&Executor::sendControlCenterRobotPosition, 6} },
     { "e", {&Executor::shutDownComputeUnit, 0} }
 })
 {
-    QObject::connect(&_controlCenterAdapter, &RCAConnector::signalNextCommand, this, 
+    qDebug() << "robot serverIP: \"" << robotServerIP.c_str() << "\" robot server port: " 
+            << robotServerPort << " control center server IP: \"" << controlCenterIP.c_str()
+            << "\" control center server port: " << controlCenterPort;
+    const auto start = std::chrono::steady_clock::now();
+    
+    QObject::connect(&_controlCenterConnector, &RCAConnector::signalNextCommand, this, 
                      &Executor::slotToApplyCommand);
-    QObject::connect(&_robotAdapter, &RobotConnector::signalNextComand, this,
+    QObject::connect(&_robotConnector, &RobotConnector::signalNextComand, this,
                      &Executor::slotToApplyCommand);
 
-    QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterAdapter,
+    QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterConnector,
                      &RCAConnector::slotWriteToServer);
-    QObject::connect(this, &Executor::signalWriteToRobot, &_robotAdapter,
+    QObject::connect(this, &Executor::signalWriteToRobot, &_robotConnector,
                      &RobotConnector::slotWriteToServer);
-    qInfo() << "Executor started";
+    
+    qInfo() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count()/1000.;
 }
 catch (std::exception& exp) {
     qCritical() << exp.what();
@@ -35,11 +55,14 @@ catch (std::exception& exp) {
 //"Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
 
 
-void Executor::slotToApplyCommand(const QString& id,const QVector<double>& params)
+void Executor::slotToApplyCommand(const QString& id, const QVector<double>& params)
 {
+    qDebug() << "id: \"" << id << "\" params: " << toQString(params);
+    const auto start = std::chrono::steady_clock::now();
+
     if(_commandTable.count(id.toStdString()) == 0)
     {
-        qCritical() << "Error unknow command \"" << id << "\"";
+        qCritical() << "Unknow command \"" << id << "\"";
     }
     else
     {
@@ -59,16 +82,16 @@ void Executor::slotToApplyCommand(const QString& id,const QVector<double>& param
             (this->*curFunction.first)(params);
         }
     }
+
+    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
 }
 
 void Executor::sendRobotMoveCommand(QVector<double> params)
 {
-    std::stringstream strStream;
-    for (auto it : params)
-        strStream << ' ' << it;
-    
-    qDebug() << "move command with parametrs: " << strStream.str().c_str();
-    
+    qDebug() << "params: " << toQString(params);
+    const auto start = std::chrono::steady_clock::now();
+
     double speed = DEFAULT_SPEED;
     
     if (_wasFirstPoint)
@@ -93,22 +116,31 @@ void Executor::sendRobotMoveCommand(QVector<double> params)
     std::swap(params[6], params[7]);
 
     emit signalWriteToRobot(params);
+
+    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
 }
 
 void Executor::sendControlCenterRobotPosition(QVector<double> params)
 {
-    std::stringstream strStream;
-    for (auto it : params)
-        strStream << ' ' << it;
-    qDebug() << "answer to client with parametrs: " << strStream.str().c_str();
+    qDebug() << "params: " << toQString(params);
+    const auto start = std::chrono::steady_clock::now();
     
     emit signalWriteToControlCenter(params);
+
+    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
 }
 
 void Executor::shutDownComputeUnit(QVector<double> params)
 {
-    qDebug() << "system is shutting down";
+    qDebug() << "params: " << toQString(params);
+    const auto start = std::chrono::steady_clock::now();
+    
     emit signalWriteToRobot(QVector<double>{_lastSendPoint[0], _lastSendPoint[1], _lastSendPoint[2],
         _lastSendPoint[3], _lastSendPoint[4], _lastSendPoint[5], DEFAULT_SPEED, 1.0});
     QCoreApplication::exit(0);
+
+    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
 }
