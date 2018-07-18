@@ -7,7 +7,7 @@
 #include <QObject>
 #include <QString>
 
-#include "../FanucAdapter/FanucAdapter.h"
+#include "../RobotConnector/RobotConnector.h"
 #include "../RCAConnector/RCAConnector.h"
 
 
@@ -95,7 +95,7 @@ private:
     /**
      * \brief Adaptor for communication with robot.
      */
-    FanucAdapter                                                        _robotAdapter;
+    RobotConnector                                                        _robotAdapter;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it

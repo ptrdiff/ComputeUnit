@@ -3,7 +3,6 @@
 #include <sstream>
 
 #include <QCoreApplication>
-#include <QDebug>
 
 Executor::Executor(std::string robotServerIP, const int robotServerPort, 
     std::string controlCenterIP, const int controlCenterPort, QObject* parent) try :
@@ -20,13 +19,13 @@ _commandTable({
 {
     QObject::connect(&_controlCenterAdapter, &RCAConnector::signalNextCommand, this, 
                      &Executor::slotToApplyCommand);
-    QObject::connect(&_robotAdapter, &FanucAdapter::signalNextComand, this, 
+    QObject::connect(&_robotAdapter, &RobotConnector::signalNextComand, this,
                      &Executor::slotToApplyCommand);
 
     QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterAdapter,
                      &RCAConnector::slotWriteToServer);
     QObject::connect(this, &Executor::signalWriteToRobot, &_robotAdapter,
-                     &FanucAdapter::slotWriteToServer);
+                     &RobotConnector::slotWriteToServer);
     qInfo() << "Executor started";
 }
 catch (std::exception& exp) {
