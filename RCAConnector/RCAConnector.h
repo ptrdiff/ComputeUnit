@@ -20,7 +20,7 @@ class RCAConnector : public QObject
 
   void doConnect();
 
-  void deInitialiseSocket();
+  void deInitializeSocket();
 
  signals:
 
@@ -37,7 +37,7 @@ class RCAConnector : public QObject
 
   MultiThreadingWorker _workerInOtherThread;
 
-  QThread _myThread;
+  QThread _Thread;
 
   std::string _serverIP;
 
