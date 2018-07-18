@@ -136,7 +136,7 @@ void Executor::shutDownComputeUnit(QVector<double> params)
 {
     qDebug() << "params: " << toQString(params);
     const auto start = std::chrono::steady_clock::now();
-    
+
     emit signalWriteToRobot(QVector<double>{_lastSendPoint[0], _lastSendPoint[1], _lastSendPoint[2],
         _lastSendPoint[3], _lastSendPoint[4], _lastSendPoint[5], DEFAULT_SPEED, 1.0});
     QCoreApplication::exit(0);
