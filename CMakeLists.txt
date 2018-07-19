@@ -24,12 +24,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
+find_package(Qt5 COMPONENTS Core Network Test REQUIRED)
 
 # Include sub-projects.
 add_subdirectory ("MultiThreadingWorker")
 add_subdirectory ("ComputerVisionSystem")
-add_subdirectory ("FanucAdapter")
+add_subdirectory ("RobotConnector")
 add_subdirectory ("RCAConnector")
 add_subdirectory ("SensorAdapter")
 add_subdirectory ("Executor")
@@ -38,7 +38,7 @@ add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME}
         Qt5::Core
         Qt5::Network
-        FanucAdapter
+        RobotConnector
         RCAConnector
         SensorAdapter
         Executor

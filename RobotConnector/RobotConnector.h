@@ -1,5 +1,5 @@
-#ifndef RCA_CONNECTOR_H
-#define RCA_CONNECTOR_H
+#ifndef FANUC_ADAPTER_H
+#define FANUC_ADAPTER_H
 
 #include <memory>
 
@@ -9,26 +9,28 @@
 
 #include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
-class RCAConnector : public QObject
+class RobotConnector : public QObject
 {
  Q_OBJECT
+
  public:
 
-  explicit RCAConnector(std::string serverIP, int port, QObject *parent = nullptr);
+  RobotConnector(std::string serverIP, int port, QObject *parent = nullptr);
 
-  ~RCAConnector() override;
+  ~RobotConnector() override;
 
   void doConnect();
 
-  void deInitializeSocket();
+  void deInitialiseSocket();
 
  signals:
 
-  void signalNextCommand(QString, QVector<double>);
+  void signalNextComand(QString, QVector<double>);
 
  public slots:
 
   void slotToDisconnected();
+
   void slotToReadyRead();
 
   void slotWriteToServer(QVector<double>);
@@ -48,7 +50,6 @@ class RCAConnector : public QObject
  signals:
 
   void signalToInitialise(std::function<void()> func);
-
 };
 
-#endif // RCA_CONNECTOR_H
+#endif // FANUC_ADAPTER_H
