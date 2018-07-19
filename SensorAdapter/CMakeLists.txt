@@ -15,10 +15,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_library(${PROJECT_NAME} STATIC
     SensorAdapter.h
     SensorAdapter.cpp
+    SensorController.h
+    SensorController.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
 	ComputerVisionSystem
+    MultiThreadingWorker
 )
