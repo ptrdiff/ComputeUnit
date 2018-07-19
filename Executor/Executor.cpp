@@ -48,7 +48,7 @@ catch (std::exception &exp)
 //"Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
 
 
-void Executor::slotToApplyCommand(const QString &id, const QVector<double> &params)
+void Executor::slotToApplyCommand(const QString &id, QVector<double> params)
 {
   QString dataString;
   for(auto &i : params)
@@ -82,6 +82,7 @@ void Executor::slotToApplyCommand(const QString &id, const QVector<double> &para
                 QString::number(curFunction.second),
                 QString::number(params.size())
             );
+        params.resize(curFunction.second);
       }
       (this->*curFunction.first)(params);
     }

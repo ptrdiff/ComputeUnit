@@ -108,10 +108,10 @@ void RobotConnector::slotWriteToServer(QVector<double> data)
   auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());
-  dataStream << 1;
+  dataStream << "1 ";
   for (auto i = 0; i + 1 < data.size(); ++i)
   {
-    dataStream << ' ' << lround(data.at(i) * 1000);
+    dataStream << lround(data.at(i) * 1000) << ' ';
   }
   dataStream << data.at(data.size() - 1);
   dataStream.flush();
