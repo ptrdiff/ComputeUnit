@@ -123,7 +123,7 @@ void RCAConnector::slotWriteToServer(QVector<double> data)
   {
     dataString.push_back(QString("%1 ").arg(i));
   }
-  qInfo() << QString("Start writing to server. Data: ") + dataString;
+  qInfo() << QString("Start writing to server. Data: %1").arg(dataString);
   auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());

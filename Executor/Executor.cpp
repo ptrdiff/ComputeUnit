@@ -9,8 +9,8 @@ Executor::Executor(std::string robotServerIP, const int robotServerPort,
     QObject(parent),
     _wasFirstPoint(false),
     _lastSendPoint(),
-    _controlCenterConnector(std::move(controlCenterIP), controlCenterPort),
-    _robotConnector(std::move(robotServerIP), robotServerPort),
+    _controlCenterConnector(controlCenterIP, controlCenterPort),
+    _robotConnector(robotServerIP, robotServerPort),
     _commandTable({
                       {"m", {&Executor::sendRobotMoveCommand, 7}},
                       {"a", {&Executor::sendControlCenterRobotPosition, 6}},
@@ -157,10 +157,6 @@ void Executor::shutDownComputeUnit(QVector<double> params)
     dataString.push_back(QString("%1 ").arg(i));
   }
   qInfo() << QString("Start shutting down Compute Unit. Parameters: %1").arg(dataString);
-  for(auto &i : params)
-  {
-    qInfo()<< QString("%1").arg(i);
-  }
   const auto startChrono = std::chrono::steady_clock::now();
 
   emit signalWriteToRobot(QVector<double>{_lastSendPoint[0], _lastSendPoint[1], _lastSendPoint[2],
