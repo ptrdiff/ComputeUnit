@@ -19,11 +19,16 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
   QString msgType;
   switch (type)
   {
-    case QtDebugMsg: msgType = "Debug"; break;
-    case QtInfoMsg: msgType = "Info"; break;
-    case QtWarningMsg: msgType = "Warning"; break;
-    case QtCriticalMsg: msgType = "Critical"; break;
-    case QtFatalMsg: msgType = "Fatal"; break;
+    case QtDebugMsg: msgType = "Debug";
+      break;
+    case QtInfoMsg: msgType = "Info";
+      break;
+    case QtWarningMsg: msgType = "Warning";
+      break;
+    case QtCriticalMsg: msgType = "Critical";
+      break;
+    case QtFatalMsg: msgType = "Fatal";
+      break;
   }
   QDateTime now = QDateTime::currentDateTime();
   now.setOffsetFromUtc(now.offsetFromUtc());
