@@ -9,7 +9,7 @@ RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
     _port(static_cast<quint16>(port)),
     _socket(nullptr)
 {
-  qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(serverIP), QString::number(port));
+  qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP), QString::number(_port));
   auto startChrono = std::chrono::steady_clock::now();
 
   connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
@@ -118,7 +118,12 @@ void RCAConnector::doConnect()
 
 void RCAConnector::slotWriteToServer(QVector<double> data)
 {
-  qInfo() << QString("Start writing to server. Data: ") << data.toList();
+  QString dataString;
+  for(auto &i : data)
+  {
+    dataString.push_back(QString("%1 ").arg(i));
+  }
+  qInfo() << QString("Start writing to server. Data: ") + dataString;
   auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());

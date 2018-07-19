@@ -10,7 +10,7 @@ void initialise()
 {
   qRegisterMetaType<std::function<void()>>("Lambda");
   qRegisterMetaType<QVector<double>>("QVectorDouble");
-  qInfo() << "Meta types registered";
+  qInfo() << QString("Meta types registered");
 }
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
