@@ -1,59 +1,164 @@
 #include "Executor.h"
-#include <iostream>
 
-Executor::Executor(QObject* parent):
-QObject(parent)
+#include <sstream>
+
+#include <QCoreApplication>
+
+Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent) try :
+    QObject(parent),
+    _wasFirstPoint(false),
+    _lastSendPoint(),
+    _controlCenterConnector(controlCenterConnector),
+    _robotConnector(robotConnector),
+    _commandTable({
+                      {"m", {&Executor::sendRobotMoveCommand, 7}},
+                      {"a", {&Executor::sendControlCenterRobotPosition, 6}},
+                      {"e", {&Executor::shutDownComputeUnit, 0}}
+                  })
 {
+  qInfo() << QString("Create with Executor.");
+  const auto startChrono = std::chrono::steady_clock::now();
+
+  QObject::connect(&_controlCenterConnector, &RCAConnector::signalNextCommand, this,
+                   &Executor::slotToApplyCommand);
+  QObject::connect(&_robotConnector, &RobotConnector::signalNextComand, this,
+                   &Executor::slotToApplyCommand);
+
+  QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterConnector,
+                   &RCAConnector::slotWriteToServer);
+  QObject::connect(this, &Executor::signalWriteToRobot, &_robotConnector,
+                   &RobotConnector::slotWriteToServer);
+
+  auto endChrono = std::chrono::steady_clock::now();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Completed the creation: %1 ms").arg(durationChrono / 1000.0);
 }
-
-void Executor::slotNewRobotPostion(double j1, double j2, double j3, double j4, double j5, double j6)
+catch (std::exception &exp)
 {
-    std::cout << "Executor::slotNewRobotPostion" << std::endl;
-    emit signalToSendCurrentPositionToClient(j1, j2, j3, j4, j5, j6);
+  qCritical() << exp.what();
 }
+// TODO Fix bug: 
+//"Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
 
-void Executor::slotMoveRobot(double j1, double j2, double j3, double j4, double j5, double j6,
-    int ctrl)
+
+void Executor::slotToApplyCommand(const QString &id, QVector<double> params)
 {
-    std::cout << "move command" << std::endl;
+  QString dataString;
+  for (auto &i : params)
+  {
+    dataString.push_back(QString("%1 ").arg(i));
+  }
+  qInfo() << QString("Start applying command. Id: %1, Parameters: %2").arg(id, dataString);
+  const auto startChrono = std::chrono::steady_clock::now();
 
-    double speed=0.01;
-    if (_wasFirstPoint) 
+  if (_commandTable.count(id.toStdString()) == 0)
+  {
+    qCritical() << QString("Unknown command '%1' ").arg(id);
+  } else
+  {
+    const auto curFunction = _commandTable[id.toStdString()];
+    if (curFunction.second > params.size())
     {
-        speed = (abs(_currentCoords[0] - j1) + abs(_currentCoords[1] - j2) + 
-            abs(_currentCoords[2] - j3) + abs(_currentCoords[3] - j4) + 
-            abs(_currentCoords[4] - j5) + abs(_currentCoords[5] - j6))/20;
+      qCritical() << QString("Too less arguments for '%1' command (need minimum '%2', has '%3').").arg
+          (
+              id,
+              QString::number(curFunction.second),
+              QString::number(params.size())
+          );
+    }
+    else
+    {
+      if (curFunction.second < params.size())
+      {
+        qWarning() << QString("Too much arguments for '%1' command (need minimum '%2', has '%3').").arg
+            (
+                id,
+                QString::number(curFunction.second),
+                QString::number(params.size())
+            );
+        params.resize(curFunction.second);
+      }
+      (this->*curFunction.first)(params);
+    }
+  }
+  auto endChrono = std::chrono::steady_clock::now();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Completed applying command: %1 ms").arg(durationChrono / 1000.0);
+}
+
+void Executor::sendRobotMoveCommand(QVector<double> params)
+{
+  QString dataString;
+  for (auto &i : params)
+  {
+    dataString.push_back(QString("%1 ").arg(i));
+  }
+  qInfo() << QString("Start sending command to Robot. Parameters: %1").arg(dataString);
+  const auto startChrono = std::chrono::steady_clock::now();
+
+  double speed = DEFAULT_SPEED;
+
+  if (_wasFirstPoint)
+  {
+    speed = 0.;
+
+    for (size_t i = 0; i < 6; ++i)
+    {
+      speed += abs(_lastSendPoint[i] - params[i]);
     }
 
-    _wasFirstPoint = true;
-    _currentCoords[0] = j1;
-    _currentCoords[1] = j2;
-    _currentCoords[2] = j3;
-    _currentCoords[3] = j4;
-    _currentCoords[4] = j5;
-    _currentCoords[5] = j6;
-    emit signalToSendNewPointToRobot(j1, j2, j3, j4, j5, j6, speed, ctrl);
+    speed = std::min(speed / TIME_FOR_RESPONSE, MAX_SPEED);
+  }
+
+  _wasFirstPoint = true;
+  for (size_t i = 0; i < 6; ++i)
+  {
+    _lastSendPoint[i] = params[i];
+  }
+
+  params.push_back(speed);
+  std::swap(params[6], params[7]);
+
+  emit signalWriteToRobot(params);
+
+  auto endChrono = std::chrono::steady_clock::now();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Completed sending command to Robot: %1 ms").arg(durationChrono / 1000.0);
+
 }
 
-void Executor::slotFoundCubeTask()
+void Executor::sendControlCenterRobotPosition(QVector<double> params)
 {
-    std::cout << "Executor::slotFoundCubeTask" << std::endl;
-    if(_wasFirstPoint)
-    {
-        emit signalToFindCubePostion(_currentCoords[0], _currentCoords[1], _currentCoords[2],
-            _currentCoords[3], _currentCoords[4], _currentCoords[5]);
-    }
+  QString dataString;
+  for (auto &i : params)
+  {
+    dataString.push_back(QString("%1 ").arg(i));
+  }
+  qInfo() << QString("Start sending command to Control Center. Parameters: %1").arg(dataString);
+  const auto startChrono = std::chrono::steady_clock::now();
+
+  emit signalWriteToControlCenter(params);
+
+  auto endChrono = std::chrono::steady_clock::now();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Completed sending command to Control Center: %1 ms").arg(durationChrono / 1000.0);
 }
 
-void Executor::slotNewCubePostion(double x, double y, double z, double w, double p, double r)
+void Executor::shutDownComputeUnit(QVector<double> params)
 {
-    std::cout << "Executor::slotNewCubePostion" << std::endl;
-    emit signalToSendCubePostion(x, y, z, w, p, r);
-}
+  QString dataString;
+  for (auto &i : params)
+  {
+    dataString.push_back(QString("%1 ").arg(i));
+  }
+  qInfo() << QString("Start shutting down Compute Unit. Parameters: %1").arg(dataString);
+  const auto startChrono = std::chrono::steady_clock::now();
 
-void Executor::slotShutDown()
-{
-    std::cout << "system is shutting down" << std::endl;
-    emit signalToSendNewPointToRobot(_currentCoords[0], _currentCoords[1], _currentCoords[2],
-        _currentCoords[3], _currentCoords[4], _currentCoords[5], 0.08, 1);
+  emit signalWriteToRobot(QVector<double>{_lastSendPoint[0], _lastSendPoint[1], _lastSendPoint[2],
+                                          _lastSendPoint[3], _lastSendPoint[4], _lastSendPoint[5], DEFAULT_SPEED, 1.0});
+  QCoreApplication::exit(0);
+
+  auto endChrono = std::chrono::steady_clock::now();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Completed shutting down Compute Unit: %1 ms").arg(durationChrono / 1000.0);
 }

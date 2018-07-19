@@ -20,4 +20,5 @@ add_library(${PROJECT_NAME} STATIC
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
+    MultiThreadingWorker
 )
