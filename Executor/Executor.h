@@ -68,7 +68,7 @@ public slots:
      * \param[in] id        Id of command.
      * \param[in] params    Parametrs for this command.
      */
-    void slotToApplyCommand(const QString& id, const QVector<double>& params);
+    void slotToApplyCommand(const QString& id, QVector<double> params);
 
 private:
 

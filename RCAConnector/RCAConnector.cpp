@@ -110,6 +110,7 @@ void RCAConnector::doConnect()
   }
   else
   {
+    _socket->write("f");
     auto endChrono = std::chrono::steady_clock::now();
     auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Complete connection: %1 ms").arg(durationChrono / 1000.0);
@@ -127,10 +128,12 @@ void RCAConnector::slotWriteToServer(QVector<double> data)
   auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());
+  dataStream << "\"data\" : \"";
   for (auto &i : data)
   {
     dataStream << i << ' ';
   }
+  dataStream << "\"|";
   dataStream.flush();
 
   auto endChrono = std::chrono::steady_clock::now();
