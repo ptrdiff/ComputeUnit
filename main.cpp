@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     initialise();
 
     //Executor executor("172.27.221.60", 59002, 9090);
-    Executor executor("localhost", 59002, "localhost", 9099);
+    Executor executor("172.27.221.60", 59002, "localhost", 9099);
 
     return a.exec();
   }

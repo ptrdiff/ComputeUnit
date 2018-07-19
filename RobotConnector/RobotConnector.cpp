@@ -76,7 +76,7 @@ void RobotConnector::doConnect()
 
   if (_socket->waitForConnected(5000))
   {
-    _socket->write("2 0 3 7 1 4 0.01 0");
+    _socket->write("2 0 3 7 4 0.01 0");
     auto endChrono = std::chrono::steady_clock::now();
     auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Completed connection: %1 ms").arg(durationChrono / 1000.0);
