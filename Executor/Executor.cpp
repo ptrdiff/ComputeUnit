@@ -4,26 +4,19 @@
 
 #include <QCoreApplication>
 
-Executor::Executor(std::string robotServerIP, const int robotServerPort,
-                   std::string controlCenterIP, const int controlCenterPort, QObject *parent) try :
+Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent) try :
     QObject(parent),
     _wasFirstPoint(false),
     _lastSendPoint(),
-    _controlCenterConnector(controlCenterIP, controlCenterPort),
-    _robotConnector(robotServerIP, robotServerPort),
+    _controlCenterConnector(controlCenterConnector),
+    _robotConnector(robotConnector),
     _commandTable({
                       {"m", {&Executor::sendRobotMoveCommand, 7}},
                       {"a", {&Executor::sendControlCenterRobotPosition, 6}},
                       {"e", {&Executor::shutDownComputeUnit, 0}}
                   })
 {
-  qInfo() << QString("Create with parameters: Robot(IP: %1, Port: %2), Control Center(IP: %3, Port: %4).").arg
-      (
-          QString::fromStdString(robotServerIP),
-          QString::number(robotServerPort),
-          QString::fromStdString(controlCenterIP),
-          QString::number(controlCenterPort)
-      );
+  qInfo() << QString("Create with Executor.");
   const auto startChrono = std::chrono::steady_clock::now();
 
   QObject::connect(&_controlCenterConnector, &RCAConnector::signalNextCommand, this,
@@ -72,7 +65,8 @@ void Executor::slotToApplyCommand(const QString &id, QVector<double> params)
               QString::number(curFunction.second),
               QString::number(params.size())
           );
-    } else
+    }
+    else
     {
       if (curFunction.second < params.size())
       {

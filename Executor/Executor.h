@@ -44,8 +44,7 @@ public:
      * \param[in] controlCenterPort Port of control center server.
      * \param[in] parent 
      */
-    Executor(std::string robotServerIP, int robotServerPort, std::string controlCenterIP,
-             int controlCenterPort, QObject *parent = nullptr);
+    Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent = nullptr);
 
 signals:
 
@@ -90,12 +89,12 @@ private:
     /**
      * \brief Adaptor for communication with buismess layer.
      */
-    RCAConnector                                                        _controlCenterConnector;
+    RCAConnector&                                                        _controlCenterConnector;
 
     /**
      * \brief Adaptor for communication with robot.
      */
-    RobotConnector                                                      _robotConnector;
+    RobotConnector&                                                      _robotConnector;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it

@@ -51,8 +51,10 @@ int main(int argc, char *argv[])
 
     initialise();
 
+    RCAConnector rcaConnector("localhost", 9099);
+    RobotConnector robotConnector("172.27.221.60", 59002);
     //Executor executor("172.27.221.60", 59002, 9090);
-    Executor executor("172.27.221.60", 59002, "localhost", 9099);
+    Executor executor(rcaConnector,robotConnector);
 
     return a.exec();
   }
