@@ -63,6 +63,7 @@ SensorController::~SensorController()
     if (_sensorProcess->state() == QProcess::ProcessState::Running)
     {
         _sensorProcess->kill();
+        _sensorProcess->waitForFinished();
     }
 }
 
@@ -163,7 +164,14 @@ void SensorController::processFinished(int exitCode, QProcess::ExitStatus exitSt
     }
     else
     {
-        qCritical() << QString(" process %1 crashed with code %2").arg(_programName, exitCode);
+        if (!_programName.isEmpty())
+        {
+            qCritical() << QString(" process %1 crashed").arg(_programName);
+        }
+        else
+        {
+            qCritical() << QString(" process crashed");
+        }
     }
 }
 

@@ -11,7 +11,7 @@ _wasFirstPoint(false),
 _lastSendPoint({0,0,0,0,-90,0}),
 _controlCenterConnector(controlCenterConnector),
 _robotConnector(robotConnector),
-_sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6} }),
+_sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6, -1, "SensorAdapter"} }),
 _commandTable({ 
     { "m", {&Executor::sendRobotMoveCommand, 7} },
     { "a", {&Executor::sendControlCenterRobotPosition, 6} },
@@ -186,7 +186,7 @@ void Executor::NewSensorData(QVector<double> params)
 
     qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now() - start).count() / 1000.;
-}
+}//todo change this function when rcaConnector would be able to process data from sensors
 
 void Executor::aksSensor(QVector<double> params)
 {
@@ -208,8 +208,8 @@ void Executor::aksSensor(QVector<double> params)
 
     qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now() - start).count() / 1000.;
-
 }
 
-
+//todo update system to use all functions from fanuc server
+//todo add timer, which process askSensor every 10 seconds.
 //todo add logging to new functions
