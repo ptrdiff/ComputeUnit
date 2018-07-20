@@ -36,7 +36,7 @@ void RobotConnector::doConnect()
   } else
   {
     qCritical() << QString("Fanuc Error: %1").arg(_socket->errorString());
-    emit signalNextComand(QString("e"),QVector<double>());
+    emit signalNextCommand(QString("e"), QVector<double>());
   }
 }
 
@@ -95,5 +95,5 @@ void RobotConnector::slotToReadyRead()
   auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Completed reading from server: %1 ms").arg(durationChrono / 1000.0);
 
-  emit signalNextComand(QString("a"), coords);
+  emit signalNextCommand(QString("a"), coords);
 }

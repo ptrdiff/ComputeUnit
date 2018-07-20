@@ -17,7 +17,7 @@ class RobotConnector : public QObject
 
  signals:
 
-  void signalNextComand(QString, QVector<double>);
+  void signalNextCommand(QString, QVector<double>);
 
  public slots:
 
