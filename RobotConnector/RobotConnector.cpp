@@ -4,73 +4,26 @@
 
 RobotConnector::RobotConnector(std::string serverIP, int port, QObject *parent) :
     QObject(parent),
-    _workerInOtherThread(),
-    _Thread(),
     _serverIP(std::move(serverIP)),
     _port(static_cast<quint16>(port)),
-    _socket(nullptr)
+    _socket(std::make_unique<QTcpSocket>(this))
 {
   qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
                                                                      QString::number(_port));
-  auto startChrono = std::chrono::steady_clock::now();
-  connect(this, &RobotConnector::signalToInitialise, &_workerInOtherThread,
-          &MultiThreadingWorker::slotToDoSomething);
 
-  this->moveToThread(&_Thread);
+  connect(_socket.get(), &QTcpSocket::disconnected, this, &RobotConnector::slotToDisconnected);
+  connect(_socket.get(), &QTcpSocket::readyRead, this, &RobotConnector::slotToReadyRead);
 
-  _workerInOtherThread.moveToThread(&_Thread);
+  doConnect();
 
-  _Thread.start();
-
-  emit signalToInitialise([this]()
-                          {
-                            this->doConnect();
-                          });
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Completed the creation: %1 ms").arg(durationChrono / 1000.0);
+  qDebug() << QString("Completed the creation.");
 }
 
-RobotConnector::~RobotConnector()
-{
-  qInfo() << QString("Start destruction.");
-  auto startChrono = std::chrono::steady_clock::now();
-
-  emit signalToInitialise([this]()
-                          {
-                            this->deInitialiseSocket();
-                          });
-  _Thread.wait();
-
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Completed the destruction: %1 ms").arg(durationChrono / 1000.0);
-}
-
-void RobotConnector::deInitialiseSocket()
-{
-  qInfo() << QString("Start de-initialization.");
-  auto startChrono = std::chrono::steady_clock::now();
-
-  _socket = std::unique_ptr<QTcpSocket>(nullptr);
-  _Thread.quit();
-
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Completed de-initialization: %1 ms").arg(durationChrono / 1000.0);
-}
 
 void RobotConnector::doConnect()
 {
   qInfo() << QString("Start connection.");
   auto startChrono = std::chrono::steady_clock::now();
-
-  _socket = std::make_unique<QTcpSocket>(this);
-
-  connect(_socket.get(), &QTcpSocket::disconnected, this, &RobotConnector::slotToDisconnected);
-  connect(_socket.get(), &QTcpSocket::readyRead, this, &RobotConnector::slotToReadyRead);
-
-  qDebug() << "Connecting RobotConnector";
 
   _socket->connectToHost(_serverIP.c_str(), _port);
 

@@ -4,15 +4,6 @@
 
 #include <iostream>
 
-Q_DECLARE_METATYPE(std::function<void()>)
-
-void initialise()
-{
-  qRegisterMetaType<std::function<void()>>("Lambda");
-  qRegisterMetaType<QVector<double>>("QVectorDouble");
-  qInfo() << QString("Meta types registered");
-}
-
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
   QByteArray localMsg = msg.toLocal8Bit();
@@ -49,10 +40,8 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
     QCoreApplication a(argc, argv);
 
-    initialise();
-
     RCAConnector rcaConnector("localhost", 9099);
-    RobotConnector robotConnector("172.27.221.60", 59002);
+    RobotConnector robotConnector("localhost", 59002);
     //Executor executor("172.27.221.60", 59002, 9090);
     Executor executor(rcaConnector,robotConnector);
 
