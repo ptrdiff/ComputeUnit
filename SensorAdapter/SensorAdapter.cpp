@@ -1,29 +1,34 @@
 #include "SensorAdapter.h"
 #include <iostream>
+#include <QVector>
 
-SensorAdapter::SensorAdapter(QObject* parent)
-try:
-QObject(parent),
-_cvs(0.062,9,4,0,"../ComputerVisionSystem/CamCalibStable.txt")
+SensorAdapter::SensorAdapter(size_t numberof_sensors, std::vector<std::pair<QString, int>> sensorsDescription,
+    QObject *parent = nullptr):
+QObject(parent)
 {
-}
-catch(const std::exception& exp)
-{
-    std::cout << exp.what() << std::endl;
+    _sensorsProcessControllers.reserve(numberof_sensors);
+    for (size_t i = 0; i < numberof_sensors; ++i)
+    {
+        _sensorsProcessControllers.emplace_back(SensorController(i, sensorsDescription[i].first, sensorsDescription[i].second));
+        connect(&_sensorsProcessControllers[i], &SensorController::newData, this, &SensorAdapter::slotToGetNewParametrs);
+    }
 }
 
-void SensorAdapter::slotToFindCube(double j1, double j2, double j3, double j4, double j5, double j6)
+bool SensorAdapter::isOpen(int id)
 {
-    try
-    {
-        auto tmp = _cvs.getMarkerPose(std::array<double, 6>{j1, j2, j3, j4, j5, j6});
-        if(tmp[0]!=0 && tmp[1] != 0 && tmp[2] != 0 ) {
-            std::cout << "emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0)" <<std::endl;
-            emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0);
-        }
-    }
-    catch(...)
-    {
-        
-    }
+    return _sensorsProcessControllers[id].isOpen();
+}
+
+void SensorAdapter::sendCurPosition(int id, QVector<double> params)
+{
+    connect(this, &SensorAdapter::signalSendPosition, &_sensorsProcessControllers[id], &SensorController::writeParemetrs);
+    emit signalSendPosition(params);
+    disconnect(this, &SensorAdapter::signalSendPosition, &_sensorsProcessControllers[id], &SensorController::writeParemetrs);
+    //todo what is disconnect
+}
+
+void SensorAdapter::slotToGetNewParametrs(int id, QVector<double> data)
+{
+    data.push_front(id);
+    emit signalGenerateCommand("s", data);
 }

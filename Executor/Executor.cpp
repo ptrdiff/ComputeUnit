@@ -27,7 +27,8 @@ _robotConnector(std::move(robotServerIP), robotServerPort),
 _commandTable({ 
     { "m", {&Executor::sendRobotMoveCommand, 7} },
     { "a", {&Executor::sendControlCenterRobotPosition, 6} },
-    { "e", {&Executor::shutDownComputeUnit, 0} }
+    { "e", {&Executor::shutDownComputeUnit, 0} },
+    { "s", { &Executor::NewSensorData, -1 }}
 })
 {
     qDebug() << "robot serverIP: \"" << robotServerIP.c_str() << "\" robot server port: " 
@@ -67,14 +68,14 @@ void Executor::slotToApplyCommand(const QString& id, const QVector<double>& para
     else
     {
         const auto curFunction = _commandTable[id.toStdString()];
-        if(curFunction.second > params.size())
+        if(curFunction.second != -1 && curFunction.second > params.size())
         {
             qCritical() << "Error too less arguments for \"" << id << "\" command(need minimum " 
                         << curFunction.second <<", has " << params.size() << ").";
         }
         else
         {
-            if(curFunction.second < params.size())
+            if(curFunction.second != -1 && curFunction.second < params.size())
             {
                 qWarning() << "Waring too much arguments for \"" << id << "\" command(need "
                            << curFunction.first << ", has " << params.size() << ").";
@@ -143,4 +144,9 @@ void Executor::shutDownComputeUnit(QVector<double> params)
 
     qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now() - start).count() / 1000.;
+}
+
+void Executor::NewSensorData(QVector<double> params)
+{
+    qCritical() << "not implimented function";
 }

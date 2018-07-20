@@ -12,15 +12,17 @@ class SensorController : public QObject
 
 public:
 
-    SensorController(QString sensorProgramName, int numberOfElementsToRead,
+    SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
         int numberOfElementsToSend = -1, QString directoryForProcess = "",
         QObject * parent = nullptr);
 
     ~SensorController();
 
+    bool isOpen();
+
 signals:
 
-    void newData(QVector<double>);
+    void newData(int id,QVector<double>);
 
 public slots:
 
@@ -41,6 +43,10 @@ private:
     int _numberOfElementsToRead;
 
     int _numberOfElementsToSend;
+
+    int _id;
+
+    bool _isOpen;
 
     void startProcess();
 

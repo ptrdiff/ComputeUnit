@@ -4,13 +4,15 @@
 
 #include <sstream>
 
-SensorController::SensorController(QString sensorProgramName, int numberOfElementsToRead,
+SensorController::SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
     int numberOfElementsToSend, QString directoryForProcess, QObject* parent) :
     QObject(parent),
     _programName(std::move(sensorProgramName)),
     _directoryForProcess(std::move(directoryForProcess)),
     _numberOfElementsToRead(numberOfElementsToRead),
-    _numberOfElementsToSend(numberOfElementsToSend)
+    _numberOfElementsToSend(numberOfElementsToSend),
+    _id(id),
+    _isOpen(false)
 {
     this->moveToThread(&_thread);
 
@@ -63,6 +65,11 @@ SensorController::~SensorController()
         _thread.quit();
     });
     _thread.wait();
+}
+
+bool SensorController::isOpen()
+{
+    return _isOpen;
 }
 
 void SensorController::writeParemetrs(QVector<double> params)
@@ -142,6 +149,8 @@ void SensorController::newError(QProcess::ProcessError error)
 
 void SensorController::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
+    _isOpen = false;
+
     if (exitStatus == QProcess::ExitStatus::NormalExit)
     {
         if (exitCode == 0)
@@ -161,6 +170,7 @@ void SensorController::processFinished(int exitCode, QProcess::ExitStatus exitSt
 
 void SensorController::processHaveStarted()
 {
+    _isOpen = true;
     qInfo() << QString("process %1 have started").arg(_programName);
 }
 
@@ -192,7 +202,7 @@ void SensorController::newMessage()
 
         resultData.push_back(coords);
     }
-    emit newData(resultData);
+    emit newData(_id, resultData);
 }
 //todo add more correct parser(may not work when has two or more packs of parametrs)
 

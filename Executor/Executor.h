@@ -120,6 +120,10 @@ private:
      * \param[in] params    Un used parametr(for adding this function in command table)
      */
     void shutDownComputeUnit(QVector<double> params);
+
+    void NewSensorData(QVector<double> params);
 };
+
+//tdod complit doxygen
 
 #endif // EXECUTOR_H
