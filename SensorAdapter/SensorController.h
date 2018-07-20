@@ -6,15 +6,25 @@
 #include <QThread>
 #include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
-class SensorController : QObject
+class SensorController : public QObject
 {
     Q_OBJECT
 
 public:
 
-    SensorController(QString sensorProgramName,QObject * parent = nullptr);
+    SensorController(QString sensorProgramName, int numberOfElementsToRead,
+        int numberOfElementsToSend = -1, QString directoryForProcess = "",
+        QObject * parent = nullptr);
 
     ~SensorController();
+
+signals:
+
+    void newData(QVector<double>);
+
+public slots:
+
+    void writeParemetrs(QVector<double>);
 
 private:
 
@@ -28,12 +38,29 @@ private:
 
     QString _directoryForProcess;
 
-    void initialiseProcess();
+    int _numberOfElementsToRead;
 
-    void deinitialiseProcess();
+    int _numberOfElementsToSend;
+
+    void startProcess();
+
+    void killProcess();
 
 signals:
 
     void signalToComputeInAnoutherThread(std::function<void()> func);
+
+private slots:
+
+    void newError(QProcess::ProcessError error);
+
+    void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
+
+    void processHaveStarted();
+
+    void newErrorMessage();
+
+    void newMessage();
+
 };
 #endif // SENSOR_CONTROLLER_H
