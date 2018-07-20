@@ -12,8 +12,6 @@ RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
   connect(_socket.get(), &QTcpSocket::disconnected, this, &RCAConnector::slotToDisconnected);
   connect(_socket.get(), &QTcpSocket::readyRead, this, &RCAConnector::slotToReadyRead);
 
-  doConnect();
-  
   qDebug() << QString("Completed the creation.");
 }
 

@@ -29,7 +29,7 @@ signals:
 
     void signalSendPosition(QVector<double>);
 
-    void signalGenerateCommand(QString id, QVector<double> params);
+    void signalGenerateCommand(const QString& id, QVector<double> params);
     
 protected slots:
 

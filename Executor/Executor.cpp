@@ -28,6 +28,9 @@ _commandTable({
   QObject::connect(&_robotConnector, &RobotConnector::signalNextCommand, this,
                    &Executor::slotToApplyCommand);
 
+  QObject::connect(&_sensorAdapter, &SensorAdapter::signalGenerateCommand, this,
+      &Executor::slotToApplyCommand);
+
   QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterConnector,
                    &RCAConnector::slotWriteToServer);
   QObject::connect(this, &Executor::signalWriteToRobot, &_robotConnector,

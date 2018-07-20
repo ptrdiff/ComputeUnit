@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QProcess>
 #include <QThread>
-#include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
 class SensorController : public QObject
 {

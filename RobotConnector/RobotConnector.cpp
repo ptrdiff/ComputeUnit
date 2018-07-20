@@ -14,8 +14,6 @@ RobotConnector::RobotConnector(std::string serverIP, int port, QObject *parent) 
   connect(_socket.get(), &QTcpSocket::disconnected, this, &RobotConnector::slotToDisconnected);
   connect(_socket.get(), &QTcpSocket::readyRead, this, &RobotConnector::slotToReadyRead);
 
-  doConnect();
-
   qDebug() << QString("Completed the creation.");
 }
 

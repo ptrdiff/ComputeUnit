@@ -45,8 +45,11 @@ int main(int argc, char *argv[])
     RobotConnector robotConnector("localhost", 59002);
     Executor executor(rcaConnector,robotConnector);
 
+    rcaConnector.doConnect();
+    robotConnector.doConnect();
+
     return a.exec();
-  }
+    }
   catch (std::exception &exp)
   {
     std::cout << exp.what() << '\n';

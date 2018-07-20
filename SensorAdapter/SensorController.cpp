@@ -81,7 +81,7 @@ void SensorController::writeParemetrs(QVector<double> params)
     else
     {
 
-        if (_numberOfElementsToSend == -1 && params.size() > _numberOfElementsToSend)
+        if (_numberOfElementsToSend != -1 && params.size() > _numberOfElementsToSend)
         {
             qWarning() << QString("too many elements for sending to robot(need %1, has %2)").arg(
                 _numberOfElementsToSend, params.size());
@@ -181,7 +181,8 @@ void SensorController::newErrorMessage()
 
 void SensorController::newMessage()
 {
-    QTextStream stream(_sensorProcess->readAllStandardOutput());
+    auto tmpString = _sensorProcess->readAllStandardOutput();
+    QTextStream stream(tmpString);
 
     QVector<double> resultData;
     resultData.reserve(_numberOfElementsToRead);
