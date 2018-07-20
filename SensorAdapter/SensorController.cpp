@@ -7,6 +7,7 @@
 SensorController::SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
     int numberOfElementsToSend, QString directoryForProcess, QObject* parent) :
     QObject(parent),
+    _sensorProcess(std::make_unique<QProcess>()),
     _programName(std::move(sensorProgramName)),
     _directoryForProcess(std::move(directoryForProcess)),
     _numberOfElementsToRead(numberOfElementsToRead),
@@ -14,57 +15,55 @@ SensorController::SensorController(int id, QString sensorProgramName, int number
     _id(id),
     _isOpen(false)
 {
-    this->moveToThread(&_thread);
+    _sensorProcess->setProgram(_programName);
 
-    _multiThreadingWorker.moveToThread(&_thread);
-
-    connect(this, &SensorController::signalToComputeInAnoutherThread, &_multiThreadingWorker,
-        &MultiThreadingWorker::slotToDoSomething);
-
-    _thread.start();
-
-    emit signalToComputeInAnoutherThread([this]()
+    if (!_directoryForProcess.isEmpty())
     {
-        _sensorProcess = std::make_unique<QProcess>();
+        _sensorProcess->setWorkingDirectory(_directoryForProcess);
+    }
 
-        _sensorProcess->setProgram(_programName);
+    connect(_sensorProcess.get(), &QProcess::errorOccurred, this, &SensorController::newError);
+    
+    connect(_sensorProcess.get(), QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        this, &SensorController::processFinished);
+    
+    connect(_sensorProcess.get(), &QProcess::started, this,
+        &SensorController::processHaveStarted);
+    
+    connect(_sensorProcess.get(), &QProcess::readyReadStandardError, this,
+        &SensorController::newErrorMessage);
+    
+    connect(_sensorProcess.get(), &QProcess::readyReadStandardOutput, this,
+        &SensorController::newMessage);
+    //todo rewrite with less signals-slots
+    
+}
 
-        if (!_directoryForProcess.isEmpty())
-        {
-            _sensorProcess->setWorkingDirectory(_directoryForProcess);
-        }
+SensorController::SensorController(SensorController&& other) noexcept
+    :
+    _sensorProcess(std::move(other._sensorProcess)),
+    _programName(std::move(other._programName)),
+    _directoryForProcess(std::move(other._directoryForProcess)),
+    _numberOfElementsToRead(other._numberOfElementsToRead),
+    _numberOfElementsToSend(other._numberOfElementsToSend),
+    _id(other._id),
+    _isOpen(other._isOpen)
+{
+}
 
-        connect(_sensorProcess.get(), &QProcess::errorOccurred, this, &SensorController::newError);
-
-        connect(_sensorProcess.get(), QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, &SensorController::processFinished);
-
-        connect(_sensorProcess.get(), &QProcess::started, this,
-            &SensorController::processHaveStarted);
-
-        connect(_sensorProcess.get(), &QProcess::readyReadStandardError, this,
-            &SensorController::newErrorMessage);
-
-        connect(_sensorProcess.get(), &QProcess::readAllStandardOutput, this,
-            &SensorController::newMessage);
-
-    });
+SensorController& SensorController::operator=(SensorController&& other) noexcept
+{
+    SensorController tmp = std::move(other);
+    std::swap(tmp, *this);
+    return *this;
 }
 
 SensorController::~SensorController()
 {
-    emit signalToComputeInAnoutherThread([this]()
+    if (_sensorProcess->state() == QProcess::ProcessState::Running)
     {
-        if (_sensorProcess->state() == QProcess::ProcessState::Running)
-        {
-            _sensorProcess->kill();
-        }
-
-        _sensorProcess = nullptr;
-
-        _thread.quit();
-    });
-    _thread.wait();
+        _sensorProcess->kill();
+    }
 }
 
 bool SensorController::isOpen()
@@ -87,7 +86,7 @@ void SensorController::writeParemetrs(QVector<double> params)
             qWarning() << QString("too many elements for sending to robot(need %1, has %2)").arg(
                 _numberOfElementsToSend, params.size());
         }
-        
+
         std::stringstream s;
         for (auto& elem : params)
         {
@@ -187,16 +186,16 @@ void SensorController::newMessage()
     QVector<double> resultData;
     resultData.reserve(_numberOfElementsToRead);
 
-    for(int i=0;i<_numberOfElementsToRead; ++i)
+    for (int i = 0; i < _numberOfElementsToRead; ++i)
     {
         stream.skipWhiteSpace();
-        if(stream.atEnd())
+        if (stream.atEnd())
         {
             qCritical() << QString("Not enough parametrs from sensor process %1(need %2, has %3)").
                 arg(_programName, _numberOfElementsToRead, i);
             return;
         }
-        
+
         double coords;
         stream >> coords;
 

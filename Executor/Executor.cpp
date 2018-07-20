@@ -24,11 +24,13 @@ _wasFirstPoint(false),
 _lastSendPoint(),
 _controlCenterConnector(std::move(controlCenterIP), controlCenterPort),
 _robotConnector(std::move(robotServerIP), robotServerPort),
+_sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6} }),
 _commandTable({ 
     { "m", {&Executor::sendRobotMoveCommand, 7} },
     { "a", {&Executor::sendControlCenterRobotPosition, 6} },
     { "e", {&Executor::shutDownComputeUnit, 0} },
-    { "s", { &Executor::NewSensorData, -1 }}
+    { "s", { &Executor::NewSensorData, -1 }},
+    { "f", { &Executor::aksSensor, -1}}
 })
 {
     qDebug() << "robot serverIP: \"" << robotServerIP.c_str() << "\" robot server port: " 
@@ -148,5 +150,32 @@ void Executor::shutDownComputeUnit(QVector<double> params)
 
 void Executor::NewSensorData(QVector<double> params)
 {
-    qCritical() << "not implimented function";
+    qDebug() << "params: " << toQString(params);
+    const auto start = std::chrono::steady_clock::now();
+
+    emit signalWriteToControlCenter(params);
+
+    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
 }
+
+void Executor::aksSensor(QVector<double> params)
+{
+    qDebug() << "params: " << toQString(params);
+    const auto start = std::chrono::steady_clock::now();
+
+    for(auto elem : params)
+    {
+        if (_sensorAdapter.isOpen(elem))
+        {
+            _sensorAdapter.sendCurPosition(elem, _lastSendPoint);
+        }
+    }
+
+    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
+
+}
+
+
+//todo add logging to new functions

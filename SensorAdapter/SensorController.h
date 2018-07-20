@@ -16,9 +16,21 @@ public:
         int numberOfElementsToSend = -1, QString directoryForProcess = "",
         QObject * parent = nullptr);
 
+    SensorController(SensorController&) = delete;
+
+    SensorController& operator= (SensorController&) = delete;
+    
+    SensorController(SensorController&&) noexcept;
+
+    SensorController& operator= (SensorController&&) noexcept;
+
     ~SensorController();
 
     bool isOpen();
+
+    void startProcess();
+
+    void killProcess();
 
 signals:
 
@@ -32,10 +44,6 @@ private:
 
     std::unique_ptr<QProcess> _sensorProcess;
 
-    MultiThreadingWorker _multiThreadingWorker;
-
-    QThread _thread;
-
     QString _programName;
 
     QString _directoryForProcess;
@@ -47,10 +55,6 @@ private:
     int _id;
 
     bool _isOpen;
-
-    void startProcess();
-
-    void killProcess();
 
 signals:
 

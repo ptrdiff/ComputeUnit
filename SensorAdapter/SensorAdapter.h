@@ -14,7 +14,7 @@ class SensorAdapter : public QObject
     Q_OBJECT
 public:
 
-    SensorAdapter(size_t numberof_sensors, std::vector<std::pair<QString, int>> sensorsDescription, 
+    SensorAdapter(const std::vector<std::pair<QString, int>>& sensorsDescription, 
         QObject *parent = nullptr);
 
     bool isOpen(int id);

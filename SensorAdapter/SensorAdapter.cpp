@@ -2,15 +2,16 @@
 #include <iostream>
 #include <QVector>
 
-SensorAdapter::SensorAdapter(size_t numberof_sensors, std::vector<std::pair<QString, int>> sensorsDescription,
-    QObject *parent = nullptr):
+SensorAdapter::SensorAdapter(const std::vector<std::pair<QString, int>>& sensorsDescription,
+    QObject *parent):
 QObject(parent)
 {
-    _sensorsProcessControllers.reserve(numberof_sensors);
-    for (size_t i = 0; i < numberof_sensors; ++i)
+    _sensorsProcessControllers.reserve(sensorsDescription.size());
+    for (size_t i = 0; i < sensorsDescription.size(); ++i)
     {
-        _sensorsProcessControllers.emplace_back(SensorController(i, sensorsDescription[i].first, sensorsDescription[i].second));
+        _sensorsProcessControllers.emplace_back(i, sensorsDescription[i].first, sensorsDescription[i].second);
         connect(&_sensorsProcessControllers[i], &SensorController::newData, this, &SensorAdapter::slotToGetNewParametrs);
+        _sensorsProcessControllers[i].startProcess();
     }
 }
 
