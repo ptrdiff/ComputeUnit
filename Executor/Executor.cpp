@@ -5,13 +5,12 @@
 #include <QCoreApplication>
 
 
-Executor::Executor(std::string robotServerIP, const int robotServerPort, 
-    std::string controlCenterIP, const int controlCenterPort, QObject* parent) try :
+Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent) try :
 QObject(parent),
 _wasFirstPoint(false),
-_lastSendPoint(),
-_controlCenterConnector(std::move(controlCenterIP), controlCenterPort),
-_robotConnector(std::move(robotServerIP), robotServerPort),
+_lastSendPoint({0,0,0,0,-90,0}),
+_controlCenterConnector(controlCenterConnector),
+_robotConnector(robotConnector),
 _sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6} }),
 _commandTable({ 
     { "m", {&Executor::sendRobotMoveCommand, 7} },
@@ -159,8 +158,13 @@ void Executor::shutDownComputeUnit(QVector<double> params)
   qInfo() << QString("Start shutting down Compute Unit. Parameters: %1").arg(dataString);
   const auto startChrono = std::chrono::steady_clock::now();
 
-  emit signalWriteToRobot(QVector<double>{_lastSendPoint[0], _lastSendPoint[1], _lastSendPoint[2],
-                                          _lastSendPoint[3], _lastSendPoint[4], _lastSendPoint[5], DEFAULT_SPEED, 1.0});
+  QVector<double> message = _lastSendPoint;
+
+  message.push_back(DEFAULT_SPEED);
+  message.push_back(1);
+
+  emit signalWriteToRobot(message);
+
   QCoreApplication::exit(0);
 
   auto endChrono = std::chrono::steady_clock::now();
@@ -170,7 +174,12 @@ void Executor::shutDownComputeUnit(QVector<double> params)
 
 void Executor::NewSensorData(QVector<double> params)
 {
-    qDebug() << "params: " << toQString(params);
+    QString dataString;
+    for (auto &i : params)
+    {
+        dataString.push_back(QString("%1 ").arg(i));
+    }
+    qInfo() << QString("Start sned new sensor data. Parameters: %1").arg(dataString);
     const auto start = std::chrono::steady_clock::now();
 
     emit signalWriteToControlCenter(params);
@@ -181,7 +190,12 @@ void Executor::NewSensorData(QVector<double> params)
 
 void Executor::aksSensor(QVector<double> params)
 {
-    qDebug() << "params: " << toQString(params);
+    QString dataString;
+    for (auto &i : params)
+    {
+        dataString.push_back(QString("%1 ").arg(i));
+    }
+    qInfo() << QString("Start make request for sensors. Parameters: %1").arg(dataString);
     const auto start = std::chrono::steady_clock::now();
 
     for(auto elem : params)

@@ -15,9 +15,11 @@ QObject(parent)
     }
 }
 
-bool SensorAdapter::isOpen(int id)
+bool SensorAdapter::isOpen(size_t id)
 {
-    return _sensorsProcessControllers[id].isOpen();
+    if(id >= 0 && id < _sensorsProcessControllers.size())
+        return _sensorsProcessControllers[id].isOpen();
+    return false;
 }
 
 void SensorAdapter::sendCurPosition(int id, QVector<double> params)

@@ -17,7 +17,7 @@ public:
     SensorAdapter(const std::vector<std::pair<QString, int>>& sensorsDescription, 
         QObject *parent = nullptr);
 
-    bool isOpen(int id);
+    bool isOpen(size_t id);
 
     void sendCurPosition(int id, QVector<double>);
 
