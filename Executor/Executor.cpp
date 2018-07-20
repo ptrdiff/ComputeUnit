@@ -37,9 +37,6 @@ catch (std::exception &exp)
 {
   qCritical() << exp.what();
 }
-// TODO Fix bug: 
-//"Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
-
 
 void Executor::slotToApplyCommand(const QString &id, QVector<double> params)
 {
