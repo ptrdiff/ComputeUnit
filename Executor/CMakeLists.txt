@@ -23,7 +23,6 @@ target_link_libraries(${PROJECT_NAME}
     RobotConnector
     RCAConnector
     SensorAdapter
-    MultiThreadingWorker
 )
 
 add_subdirectory ("Tests")

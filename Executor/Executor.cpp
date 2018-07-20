@@ -25,7 +25,7 @@ _commandTable({
 
   QObject::connect(&_controlCenterConnector, &RCAConnector::signalNextCommand, this,
                    &Executor::slotToApplyCommand);
-  QObject::connect(&_robotConnector, &RobotConnector::signalNextComand, this,
+  QObject::connect(&_robotConnector, &RobotConnector::signalNextCommand, this,
                    &Executor::slotToApplyCommand);
 
   QObject::connect(this, &Executor::signalWriteToControlCenter, &_controlCenterConnector,
@@ -41,9 +41,6 @@ catch (std::exception &exp)
 {
   qCritical() << exp.what();
 }
-// TODO Fix bug: 
-//"Type conversion already registered from type QSharedPointer<QNetworkSession> to type QObject*"
-
 
 void Executor::slotToApplyCommand(const QString &id, QVector<double> params)
 {
@@ -141,7 +138,7 @@ void Executor::sendControlCenterRobotPosition(QVector<double> params)
   qInfo() << QString("Start sending command to Control Center. Parameters: %1").arg(dataString);
   const auto startChrono = std::chrono::steady_clock::now();
 
-  emit signalWriteToControlCenter(params);
+  emit signalWriteToControlCenter(std::move(params));
 
   auto endChrono = std::chrono::steady_clock::now();
   auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
