@@ -45,8 +45,7 @@ public:
      * \param[in] controlCenterPort Port of control center server.
      * \param[in] parent 
      */
-    Executor(std::string robotServerIP, int robotServerPort, std::string controlCenterIP,
-             int controlCenterPort, QObject *parent = nullptr);
+    Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent = nullptr);
 
 signals:
 
@@ -69,7 +68,7 @@ public slots:
      * \param[in] id        Id of command.
      * \param[in] params    Parametrs for this command.
      */
-    void slotToApplyCommand(const QString& id, const QVector<double>& params);
+    void slotToApplyCommand(const QString& id, QVector<double> params);
 
 private:
 
@@ -91,12 +90,12 @@ private:
     /**
      * \brief Adaptor for communication with buismess layer.
      */
-    RCAConnector                                                        _controlCenterConnector;
+    RCAConnector&                                                        _controlCenterConnector;
 
     /**
      * \brief Adaptor for communication with robot.
      */
-    RobotConnector                                                      _robotConnector;
+    RobotConnector&                                                      _robotConnector;
 
     SensorAdapter _sensorAdapter;
 

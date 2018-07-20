@@ -9,7 +9,8 @@ RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
     _port(static_cast<quint16>(port)),
     _socket(nullptr)
 {
-  qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(serverIP), QString::number(port));
+  qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
+                                                                     QString::number(_port));
   auto startChrono = std::chrono::steady_clock::now();
 
   connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
@@ -27,7 +28,7 @@ RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
                           });
 
   auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono-startChrono).count();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Completed the creation: %1 ms").arg(durationChrono / 1000.0);
 }
 
@@ -41,7 +42,7 @@ RCAConnector::~RCAConnector()
                           });
   _Thread.wait();
   auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono-startChrono).count();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Complete the destruction: %1 ms").arg(durationChrono / 1000.0);
 }
 
@@ -54,7 +55,7 @@ void RCAConnector::deInitializeSocket()
   _Thread.quit();
 
   auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono-startChrono).count();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Complete de-initialization: %1 ms").arg(durationChrono / 1000.0);
 }
 
@@ -64,6 +65,7 @@ void RCAConnector::slotToReadyRead()
   auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream locData(_socket.get());
+
   QString token;
   locData >> token;
 
@@ -73,10 +75,11 @@ void RCAConnector::slotToReadyRead()
     double coord;
     locData >> coord;
     coords.push_back(coord);
+    locData.skipWhiteSpace();
   }
 
   auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono-startChrono).count();
+  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Complete reading from server: %1 ms").arg(durationChrono / 1000.0);
 
   emit signalNextCommand(token, coords);
@@ -106,10 +109,11 @@ void RCAConnector::doConnect()
 
   if (!_socket->waitForConnected(5000))
   {
-    qDebug() << "RCAConnector Error: " << _socket->errorString();
-  }
-  else
+    qCritical() << QString("RCAConnector Error: %1").arg(_socket->errorString());
+    emit signalNextCommand(QString("e"),QVector<double>());
+  } else
   {
+    _socket->write("f");
     auto endChrono = std::chrono::steady_clock::now();
     auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Complete connection: %1 ms").arg(durationChrono / 1000.0);
@@ -118,14 +122,21 @@ void RCAConnector::doConnect()
 
 void RCAConnector::slotWriteToServer(QVector<double> data)
 {
-  qInfo() << QString("Start writing to server. Data: ") << data.toList();
+  QString dataString;
+  for (auto &i : data)
+  {
+    dataString.push_back(QString("%1 ").arg(i));
+  }
+  qInfo() << QString("Start writing to server. Data: %1").arg(dataString);
   auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());
+  dataStream << "\"data\" : \"";
   for (auto &i : data)
   {
     dataStream << i << ' ';
   }
+  dataStream << "\"|";
   dataStream.flush();
 
   auto endChrono = std::chrono::steady_clock::now();
