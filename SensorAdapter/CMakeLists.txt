@@ -12,9 +12,13 @@ set(CMAKE_AUTOMOC ON)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+add_subdirectory ("tmp")
+
 add_library(${PROJECT_NAME} STATIC
     SensorAdapter.h
     SensorAdapter.cpp
+    SensorController.h
+    SensorController.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
