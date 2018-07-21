@@ -16,8 +16,14 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
                       {"e", {&Executor::shutDownComputeUnit, 0}}
                   })
 {
-  qInfo() << QString("Create with Executor.");
+  qInfo() << QString("Create Executor.");
   const auto startChrono = std::chrono::steady_clock::now();
+
+  QObject::connect(this, &Executor::signalToConnect, &_controlCenterConnector, &RCAConnector::slotToConnect);
+  QObject::connect(this, &Executor::signalToConnect, &_robotConnector, &RobotConnector::slotToConnect);
+
+  QObject::connect(&_controlCenterConnector, &RCAConnector::signalSocketError, this, &Executor::slotToSocketError);
+  QObject::connect(&_robotConnector, &RobotConnector::signalSocketError, this, &Executor::slotToSocketError);
 
   QObject::connect(&_controlCenterConnector, &RCAConnector::signalNextCommand, this,
                    &Executor::slotToApplyCommand);
@@ -29,9 +35,11 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
   QObject::connect(this, &Executor::signalWriteToRobot, &_robotConnector,
                    &RobotConnector::slotWriteToServer);
 
+  emit signalToConnect();
+
   auto endChrono = std::chrono::steady_clock::now();
   auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Completed the creation: %1 ms").arg(durationChrono / 1000.0);
+  qDebug() << QString("Completed the Executor creation: %1 ms").arg(durationChrono / 1000.0);
 }
 catch (std::exception &exp)
 {
@@ -158,4 +166,9 @@ void Executor::shutDownComputeUnit(QVector<double> params)
   auto endChrono = std::chrono::steady_clock::now();
   auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Completed shutting down Compute Unit: %1 ms").arg(durationChrono / 1000.0);
+}
+void Executor::slotToSocketError()
+{
+  QCoreApplication::exit(-1);
+  exit(-1);
 }

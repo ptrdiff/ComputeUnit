@@ -12,14 +12,16 @@ class RCAConnector : public QObject
  public:
 
   explicit RCAConnector(std::string serverIP, int port, QObject *parent = nullptr);
-  void doConnect();
 
  signals:
+
+  void signalSocketError();
 
   void signalNextCommand(QString, QVector<double>);
 
  public slots:
 
+  void slotToConnect();
   void slotToDisconnected();
   void slotToReadyRead();
 

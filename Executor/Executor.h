@@ -60,6 +60,8 @@ signals:
      */
     void signalWriteToControlCenter(QVector<double> params);
 
+  void signalToConnect();
+
 public slots:
 
     /**
@@ -68,6 +70,8 @@ public slots:
      * \param[in] params    Parametrs for this command.
      */
     void slotToApplyCommand(const QString& id, QVector<double> params);
+
+  void slotToSocketError();
 
 private:
 

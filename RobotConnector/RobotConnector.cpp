@@ -14,41 +14,36 @@ RobotConnector::RobotConnector(std::string serverIP, int port, QObject *parent) 
   connect(_socket.get(), &QTcpSocket::disconnected, this, &RobotConnector::slotToDisconnected);
   connect(_socket.get(), &QTcpSocket::readyRead, this, &RobotConnector::slotToReadyRead);
 
-  doConnect();
-
   qDebug() << QString("Completed the creation.");
 }
 
-
-void RobotConnector::doConnect()
+void RobotConnector::slotToConnect()
 {
   qInfo() << QString("Start connection.");
   auto startChrono = std::chrono::steady_clock::now();
 
   _socket->connectToHost(_serverIP.c_str(), _port);
 
-  if (_socket->waitForConnected(5000))
+  if (_socket->waitForConnected(30000))
   {
     _socket->write("2 0 3 7 4 1 0");
+
     auto endChrono = std::chrono::steady_clock::now();
     auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Completed connection: %1 ms").arg(durationChrono / 1000.0);
   } else
   {
     qCritical() << QString("Fanuc Error: %1").arg(_socket->errorString());
-    emit signalNextCommand(QString("e"), QVector<double>());
+    emit signalSocketError();
   }
 }
 
 void RobotConnector::slotToDisconnected()
 {
   qInfo() << QString("Start disconnection.");
-
-  if (_socket)
-  {
-    _socket->close();
-    doConnect();
-  }
+  _socket->close();
+  emit signalSocketError();
+  qDebug() << QString("Complete disconnection");
 }
 
 void RobotConnector::slotWriteToServer(QVector<double> data)

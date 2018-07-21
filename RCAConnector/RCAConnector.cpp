@@ -12,8 +12,6 @@ RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
   connect(_socket.get(), &QTcpSocket::disconnected, this, &RCAConnector::slotToDisconnected);
   connect(_socket.get(), &QTcpSocket::readyRead, this, &RCAConnector::slotToReadyRead);
 
-  doConnect();
-  
   qDebug() << QString("Completed the creation.");
 }
 
@@ -46,24 +44,22 @@ void RCAConnector::slotToReadyRead()
 void RCAConnector::slotToDisconnected()
 {
   qInfo() << QString("Start disconnection.");
-  if (_socket)
-  {
-    _socket->close();
-    doConnect();
-  }
+  emit signalNextCommand(QString("e"), QVector<double>());
+  _socket->close();
+  qDebug() << QString("Complete disconnection.");
 }
 
-void RCAConnector::doConnect()
+void RCAConnector::slotToConnect()
 {
   qInfo() << QString("Start connection.");
   auto startChrono = std::chrono::steady_clock::now();
 
   _socket->connectToHost(_serverIP.c_str(), _port);
 
-  if (!_socket->waitForConnected(5000))
+  if (!_socket->waitForConnected(30000))
   {
     qCritical() << QString("RCAConnector Error: %1").arg(_socket->errorString());
-    emit signalNextCommand(QString("e"),QVector<double>());
+    emit signalSocketError();
   } else
   {
     _socket->write("f");
