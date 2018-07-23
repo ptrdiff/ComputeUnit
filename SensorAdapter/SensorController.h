@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QProcess>
 #include <QThread>
+#include <memory>
 
 class SensorController : public QObject
 {

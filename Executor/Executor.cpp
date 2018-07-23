@@ -1,7 +1,5 @@
 #include "Executor.h"
 
-#include <sstream>
-
 #include <QCoreApplication>
 
 Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent) try :
@@ -12,11 +10,11 @@ _controlCenterConnector(controlCenterConnector),
 _robotConnector(robotConnector),
 _sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6, -1, "SensorAdapter"} }),
 _commandTable({
-    { "m", {&Executor::sendRobotMoveCommand, 7} },
-    { "a", {&Executor::sendControlCenterRobotPosition, 6} },
-    { "e", {&Executor::shutDownComputeUnit, 0} },
-    { "s", { &Executor::NewSensorData, -1 }},
-    { "f", { &Executor::aksSensor, -1}}
+                  {"m", {&Executor::sendRobotMoveCommand, 7}},
+                  {"a", {&Executor::sendControlCenterRobotPosition, 6}},
+                  {"e", {&Executor::shutDownComputeUnit, 0}},
+                  {"s", {&Executor::NewSensorData, -1}},
+                  {"f", {&Executor::askSensor, -1}}
 })
 {
   qInfo() << QString("Create Executor.");
@@ -191,7 +189,7 @@ void Executor::NewSensorData(QVector<double> params)
     {
         dataString.push_back(QString("%1 ").arg(i));
     }
-    qInfo() << QString("Start sned new sensor data. Parameters: %1").arg(dataString);
+  qInfo() << QString("Start send new sensor data. Parameters: %1").arg(dataString);
     const auto start = std::chrono::steady_clock::now();
 
     emit signalWriteToControlCenter(params);
@@ -200,7 +198,7 @@ void Executor::NewSensorData(QVector<double> params)
         std::chrono::steady_clock::now() - start).count() / 1000.;
 }//todo change this function when rcaConnector would be able to process data from sensors
 
-void Executor::aksSensor(QVector<double> params)
+void Executor::askSensor(QVector<double> params)
 {
     QString dataString;
     for (auto &i : params)

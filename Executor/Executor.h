@@ -129,9 +129,9 @@ private:
 
     void NewSensorData(QVector<double> params);
 
-    void aksSensor(QVector<double>);
+  void askSensor(QVector<double>);
 };
 
-//tdod complit doxygen
+//todo complit doxygen
 
 #endif // EXECUTOR_H
