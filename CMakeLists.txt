@@ -27,7 +27,6 @@ find_package(Threads)
 find_package(Qt5 COMPONENTS Core Network Test REQUIRED)
 
 # Include sub-projects.
-add_subdirectory ("MultiThreadingWorker")
 add_subdirectory ("ComputerVisionSystem")
 add_subdirectory ("RobotConnector")
 add_subdirectory ("RCAConnector")
@@ -42,5 +41,4 @@ target_link_libraries(${PROJECT_NAME}
         RCAConnector
         SensorAdapter
         Executor
-        MultiThreadingWorker
 )

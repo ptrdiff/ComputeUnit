@@ -9,6 +9,7 @@
 
 #include "../RobotConnector/RobotConnector.h"
 #include "../RCAConnector/RCAConnector.h"
+#include "../SensorAdapter/SensorAdapter.h"
 
 
 /**
@@ -60,6 +61,8 @@ signals:
      */
     void signalWriteToControlCenter(QVector<double> params);
 
+  void signalToConnect();
+
 public slots:
 
     /**
@@ -68,6 +71,8 @@ public slots:
      * \param[in] params    Parametrs for this command.
      */
     void slotToApplyCommand(const QString& id, QVector<double> params);
+
+  void slotToSocketError();
 
 private:
 
@@ -84,7 +89,7 @@ private:
     /**
      * \brief Array describing last point, sended to robot.
      */
-    std::array<double, 6>                                               _lastSendPoint;
+    QVector<double>                                                    _lastSendPoint;
 
     /**
      * \brief Adaptor for communication with buismess layer.
@@ -95,6 +100,8 @@ private:
      * \brief Adaptor for communication with robot.
      */
     RobotConnector&                                                      _robotConnector;
+
+    SensorAdapter _sensorAdapter;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it
@@ -119,6 +126,12 @@ private:
      * \param[in] params    Un used parametr(for adding this function in command table)
      */
     void shutDownComputeUnit(QVector<double> params);
+
+    void NewSensorData(QVector<double> params);
+
+  void askSensor(QVector<double>);
 };
+
+//todo complit doxygen
 
 #endif // EXECUTOR_H

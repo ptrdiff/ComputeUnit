@@ -1,29 +1,39 @@
 #include "SensorAdapter.h"
 #include <iostream>
+#include <QVector>
 
-SensorAdapter::SensorAdapter(QObject* parent)
-try:
-QObject(parent),
-_cvs(0.062,9,4,0,"../ComputerVisionSystem/CamCalibStable.txt")
+SensorAdapter::SensorAdapter(const std::vector<std::tuple<QString, int, int, QString>>& 
+    sensorsDescription, QObject *parent):
+QObject(parent)
 {
-}
-catch(const std::exception& exp)
-{
-    std::cout << exp.what() << std::endl;
+    _sensorsProcessControllers.reserve(sensorsDescription.size());
+    for (size_t i = 0; i < sensorsDescription.size(); ++i)
+    {
+        _sensorsProcessControllers.emplace_back(i, std::get<0>(sensorsDescription[i]), 
+            std::get<1>(sensorsDescription[i]), std::get<2>(sensorsDescription[i]), 
+            std::get<3>(sensorsDescription[i]));
+        connect(&_sensorsProcessControllers[i], &SensorController::newData, this, &SensorAdapter::slotToGetNewParametrs);
+        _sensorsProcessControllers[i].startProcess();
+    }
 }
 
-void SensorAdapter::slotToFindCube(double j1, double j2, double j3, double j4, double j5, double j6)
+bool SensorAdapter::isOpen(size_t id)
 {
-    try
-    {
-        auto tmp = _cvs.getMarkerPose(std::array<double, 6>{j1, j2, j3, j4, j5, j6});
-        if(tmp[0]!=0 && tmp[1] != 0 && tmp[2] != 0 ) {
-            std::cout << "emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0)" <<std::endl;
-            emit signalCubeFind(tmp[1], tmp[2], tmp[3], -180, 0, 0);
-        }
-    }
-    catch(...)
-    {
-        
-    }
+    if(id >= 0 && id < _sensorsProcessControllers.size())
+        return _sensorsProcessControllers[id].isOpen();
+    return false;
+}
+
+void SensorAdapter::sendCurPosition(int id, QVector<double> params)
+{
+    connect(this, &SensorAdapter::signalSendPosition, &_sensorsProcessControllers[id], &SensorController::writeParemetrs);
+    emit signalSendPosition(params);
+    disconnect(this, &SensorAdapter::signalSendPosition, &_sensorsProcessControllers[id], &SensorController::writeParemetrs);
+    //todo what is disconnect
+}
+
+void SensorAdapter::slotToGetNewParametrs(int id, QVector<double> data)
+{
+    data.push_front(id);
+    emit signalGenerateCommand("s", data);
 }

@@ -5,9 +5,6 @@
 
 #include <QObject>
 #include <QTcpSocket>
-#include <QThread>
-
-#include "../MultiThreadingWorker/MultiThreadingWorker.h"
 
 class RCAConnector : public QObject
 {
@@ -16,18 +13,15 @@ class RCAConnector : public QObject
 
   explicit RCAConnector(std::string serverIP, int port, QObject *parent = nullptr);
 
-  ~RCAConnector() override;
-
-  void doConnect();
-
-  void deInitializeSocket();
-
  signals:
+
+  void signalSocketError();
 
   void signalNextCommand(QString, QVector<double>);
 
  public slots:
 
+  void slotToConnect();
   void slotToDisconnected();
   void slotToReadyRead();
 
@@ -35,19 +29,11 @@ class RCAConnector : public QObject
 
  protected:
 
-  MultiThreadingWorker _workerInOtherThread;
-
-  QThread _Thread;
-
   std::string _serverIP;
 
   quint16 _port;
 
   std::unique_ptr<QTcpSocket> _socket;
-
- signals:
-
-  void signalToInitialise(std::function<void()> func);
 
 };
 

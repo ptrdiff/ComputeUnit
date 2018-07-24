@@ -3,15 +3,7 @@
 #include "Executor/Executor.h"
 
 #include <iostream>
-
-Q_DECLARE_METATYPE(std::function<void()>)
-
-void initialise()
-{
-  qRegisterMetaType<std::function<void()>>("Lambda");
-  qRegisterMetaType<QVector<double>>("QVectorDouble");
-  qInfo() << QString("Meta types registered");
-}
+#include <fstream>
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -49,15 +41,13 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
     QCoreApplication a(argc, argv);
 
-    initialise();
-
     RCAConnector rcaConnector("localhost", 9099);
-    RobotConnector robotConnector("172.27.221.60", 59002);
-    //Executor executor("172.27.221.60", 59002, 9090);
+    //RobotConnector robotConnector("172.27.221.60", 59002);
+    RobotConnector robotConnector("localhost", 59002);
     Executor executor(rcaConnector,robotConnector);
 
     return a.exec();
-  }
+    }
   catch (std::exception &exp)
   {
     std::cout << exp.what() << '\n';
