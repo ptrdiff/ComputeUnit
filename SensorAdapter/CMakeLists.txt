@@ -12,7 +12,7 @@ set(CMAKE_AUTOMOC ON)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_subdirectory ("tmp")
+add_subdirectory ("echoSensor")
 
 add_library(${PROJECT_NAME} STATIC
     SensorAdapter.h
@@ -24,5 +24,4 @@ add_library(${PROJECT_NAME} STATIC
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
-	ComputerVisionSystem
 )

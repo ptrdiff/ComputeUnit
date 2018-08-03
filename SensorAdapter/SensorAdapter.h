@@ -6,7 +6,6 @@
 
 #include <QObject>
 
-#include "../ComputerVisionSystem/CVS.h"
 #include "SensorController.h"
 
 class SensorAdapter : public QObject

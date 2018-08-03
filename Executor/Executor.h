@@ -7,9 +7,9 @@
 #include <QObject>
 #include <QString>
 
-#include "../RobotConnector/RobotConnector.h"
-#include "../RCAConnector/RCAConnector.h"
-#include "../SensorAdapter/SensorAdapter.h"
+#include "RobotConnector/RobotConnector.h"
+#include "RCAConnector/RCAConnector.h"
+#include "SensorAdapter/SensorAdapter.h"
 
 
 /**

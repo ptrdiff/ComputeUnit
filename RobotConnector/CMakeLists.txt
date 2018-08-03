@@ -13,8 +13,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(${PROJECT_NAME} STATIC
-        RobotConnector.h
-        RobotConnector.cpp
+    RobotConnector.h
+    RobotConnector.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
