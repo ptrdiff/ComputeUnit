@@ -14,6 +14,8 @@ class RobotConnector : public QObject
 
   RobotConnector(std::string serverIP, int port, QObject *parent = nullptr);
 
+  bool isConnected() const;
+
  signals:
 
   void signalSocketError();

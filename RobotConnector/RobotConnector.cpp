@@ -17,6 +17,11 @@ RobotConnector::RobotConnector(std::string serverIP, int port, QObject *parent) 
   qDebug() << QString("Completed the creation.");
 }
 
+bool RobotConnector::isConnected() const
+{
+  return _socket->state() == QTcpSocket::SocketState::ConnectedState;
+}
+
 void RobotConnector::slotToConnect()
 {
   qInfo() << QString("Start connection.");

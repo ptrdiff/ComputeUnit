@@ -24,7 +24,8 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
   }
   QDateTime now = QDateTime::currentDateTime();
   now.setOffsetFromUtc(now.offsetFromUtc());
-  std::cerr << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
+  std::ofstream out("log.txt", std::ios_base::app);
+  out << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
       now.toString(Qt::ISODateWithMs),
       localMsg.constData(),
       context.function,
@@ -32,6 +33,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
       QString::number(context.line),
       msgType
   ).toStdString();
+  out.close();
 } // TODO add feature to change stream output and formatting output(table or something like this)
 
 int main(int argc, char *argv[])

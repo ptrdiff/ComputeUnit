@@ -104,7 +104,6 @@ void SensorController::startProcess()
     if (_sensorProcess->state() == QProcess::ProcessState::NotRunning)
     {
         _sensorProcess->start();
-        qDebug() << QString("start process %1").arg(_programName);
     }
 }
 

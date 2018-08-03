@@ -15,6 +15,11 @@ RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
   qDebug() << QString("Completed the creation.");
 }
 
+bool RCAConnector::isConnected() const
+{
+  return _socket->state() == QTcpSocket::SocketState::ConnectedState;
+}
+
 void RCAConnector::slotToReadyRead()
 {
   qInfo() << QString("Start reading from server.");

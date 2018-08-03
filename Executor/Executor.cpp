@@ -12,7 +12,7 @@ _sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6, -1, "SensorAdapter"} }),
 _commandTable({
                   {"m", {&Executor::sendRobotMoveCommand, 7}},
                   {"a", {&Executor::sendControlCenterRobotPosition, 6}},
-                  {"e", {&Executor::shutDownComputeUnit, 0}},
+                  {"e", {&Executor::shutDownComputeUnit, -1}},
                   {"s", {&Executor::NewSensorData, -1}},
                   {"f", {&Executor::askSensor, -1}}
 })
@@ -20,8 +20,8 @@ _commandTable({
   qInfo() << QString("Create Executor.");
   const auto startChrono = std::chrono::steady_clock::now();
 
-  QObject::connect(this, &Executor::signalToConnect, &_controlCenterConnector, &RCAConnector::slotToConnect);
-  QObject::connect(this, &Executor::signalToConnect, &_robotConnector, &RobotConnector::slotToConnect);
+  QObject::connect(this, &Executor::signalToConnect, &_controlCenterConnector, &RCAConnector::slotToConnect, Qt::ConnectionType::QueuedConnection);
+  QObject::connect(this, &Executor::signalToConnect, &_robotConnector, &RobotConnector::slotToConnect, Qt::ConnectionType::QueuedConnection);
 
   QObject::connect(&_controlCenterConnector, &RCAConnector::signalSocketError, this, &Executor::slotToSocketError);
   QObject::connect(&_robotConnector, &RobotConnector::signalSocketError, this, &Executor::slotToSocketError);
@@ -163,23 +163,29 @@ void Executor::shutDownComputeUnit(QVector<double> params)
   qInfo() << QString("Start shutting down Compute Unit. Parameters: %1").arg(dataString);
   const auto startChrono = std::chrono::steady_clock::now();
 
-  QVector<double> message = _lastSendPoint;
+  if (_robotConnector.isConnected()) 
+  {
+    QVector<double> message = _lastSendPoint;
 
-  message.push_back(DEFAULT_SPEED);
-  message.push_back(1);
+    message.push_back(DEFAULT_SPEED);
+    message.push_back(1);
 
-  emit signalWriteToRobot(message);
+    emit signalWriteToRobot(message);
+  }
 
-  QCoreApplication::exit(0);
+  if (params.empty())
+    QCoreApplication::exit(0);
+  else
+    QCoreApplication::exit(params[0]);
 
   auto endChrono = std::chrono::steady_clock::now();
   auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Completed shutting down Compute Unit: %1 ms").arg(durationChrono / 1000.0);
 }
+
 void Executor::slotToSocketError()
 {
-  QCoreApplication::exit(-1);
-  exit(-1);
+  shutDownComputeUnit({ -1 });
 }
 
 void Executor::NewSensorData(QVector<double> params)
