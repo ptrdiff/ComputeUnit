@@ -37,12 +37,10 @@ public:
     static constexpr double MAX_SPEED = 2.;
     
     /**
-     * \brief                       Constructor executor and connecting to robot server and control 
-     *                              center server.
-     * \param[in] robotServerIP     IP adress of robot server.
-     * \param[in] robotServerPort   Port of robot server.
-     * \param[in] controlCenterIP   IP adress of control center server.
-     * \param[in] controlCenterPort Port of control center server.
+     * \brief                             Constructor executor and connecting to robot server and
+     *                                    control center server.
+     * \param[in] controlCenterConnector  Instance of RCAConnector.
+     * \param[in] robotConnector          Instance of RobotConnector.
      * \param[in] parent 
      */
     Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent = nullptr);
@@ -61,7 +59,10 @@ signals:
      */
     void signalWriteToControlCenter(QVector<double> params);
 
-  void signalToConnect();
+    /**
+     * \brief Signal for make connection to robot and RCA.
+     */
+    void signalToConnect();
 
 public slots:
 
@@ -72,7 +73,10 @@ public slots:
      */
     void slotToApplyCommand(const QString& id, QVector<double> params);
 
-  void slotToSocketError();
+    /**
+     * \brief Slot for processing socket errors.
+     */
+    void slotToSocketError();
 
 private:
 
@@ -101,6 +105,9 @@ private:
      */
     RobotConnector&                                                      _robotConnector;
 
+    /**
+     * \brief Adaptor for adding sensor ot CU.
+     */
     SensorAdapter _sensorAdapter;
 
     /**
@@ -122,14 +129,22 @@ private:
     void sendControlCenterRobotPosition(QVector<double> params);
 
     /**
-     * \brief               Function for shutting down comrute unit.
+     * \brief               Function for shutting down compute unit.
      * \param[in] params    Un used parametr(for adding this function in command table)
      */
     void shutDownComputeUnit(QVector<double> params);
 
+    /**
+     * \brief            Function for processing new data from sensor.
+     * \param[in] params First number is id of sensor, other is data from this sensor.
+     */
     void NewSensorData(QVector<double> params);
 
-  void askSensor(QVector<double>);
+    /**
+     * \brief            Function for sending data to sensor.
+     * \param[in] params First number is id of sensor, other is data from this sensor.
+     */
+    void askSensor(QVector<double>);
 };
 
 //todo complit doxygen

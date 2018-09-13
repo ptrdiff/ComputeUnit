@@ -8,31 +8,67 @@
 
 #include "SensorController.h"
 
+/**
+ * \brief Adapter for adding sensors.
+ */
 class SensorAdapter : public QObject
 {
     Q_OBJECT
 public:
 
-    SensorAdapter(const std::vector<std::tuple<QString, int, int, QString>>& sensorsDescription,
-        QObject *parent = nullptr);
+  /**
+   * \brief                         Constructor of SensorAdapter
+   * \param[in] sensorsDescription  Vector with description for intitialising sensors.
+   * \param[in] parent              QObject paraent.
+   */
+  explicit SensorAdapter(
+    const std::vector<std::tuple<QString, int, int, QString>>& sensorsDescription,
+    QObject *parent = nullptr);
 
-    bool isOpen(size_t id);
+  /**
+   * \brief         Function for shecking if sensor is active.
+   * \param[in] id  Id of sensor for checking.
+   * \return        True if sensor is active, false otherwise.
+   */
+  bool isOpen(size_t id);
 
-    void sendCurPosition(int id, QVector<double>);
+  /**
+   * \brief             Function for sending current robot position to sensor.
+   * \param[in] id      Id of sensor for sending.
+   * \param[in] params  Postion of robot.
+   */
+  void sendCurPosition(int id, QVector<double> params);
 
 protected:
     
-    std::vector<SensorController> _sensorsProcessControllers;
+  /**
+   * \brief Vector with controllers of process controller.
+   */
+  std::vector<SensorController> _sensorsProcessControllers;
 
 signals:
 
-    void signalSendPosition(QVector<double>);
+  /**
+   * \brief             Signal for sending position to robot.
+   * \param[in] params  First number is id of sensor for sending data, other is data for sending.
+   */
+  void signalSendPosition(QVector<double> params);
 
-    void signalGenerateCommand(const QString& id, QVector<double> params);
+  /**
+   * \brief             Signal for sending data from sensor to executor.
+   * \param[in] id      Id of sensor.
+   * \param[in] params  Vector with data.
+   */
+  void signalGenerateCommand(const QString& id, QVector<double> params);
     
 protected slots:
 
-    void slotToGetNewParametrs(int id, QVector<double> data);
+  /**
+   * \brief           Slot for sending data to executor.
+   * \param[in] id    Id of sensor.
+   * \param[in] data  Data from sensor.
+   */
+  void slotToGetNewParametrs(int id, QVector<double> data);
 };
 
 //todo rewite initialise with using config

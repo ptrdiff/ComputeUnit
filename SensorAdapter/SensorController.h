@@ -6,71 +6,164 @@
 #include <QThread>
 #include <memory>
 
+/**
+ * \brief Controller for work with process.
+ */
 class SensorController : public QObject
 {
     Q_OBJECT
 
 public:
 
-    SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
+  /**
+   * \brief                             Constructor with creating sensor process.
+   * \param[in] id                      Id of current sensor.
+   * \param[in] sensorProgramName       Program name for launching.
+   * \param[in] numberOfElementsToRead  Size of one input block.
+   * \param[in] numberOfElementsToSend  Size of one ouput block.
+   * \param[in] directoryForProcess     Directory for process.
+   * \param[in] parent                  Qobject parent.
+   */
+  SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
         int numberOfElementsToSend = -1, QString directoryForProcess = "",
         QObject * parent = nullptr);
 
-    SensorController(SensorController&) = delete;
+  /**
+   * \brief           Deleted copy constructor.
+   * \param[in] other Anouther instance.
+   */
+  SensorController(SensorController& other) = delete;
 
-    SensorController& operator= (SensorController&) = delete;
+  /**
+   * \brief            Deleted copy operator.
+   * \param[in] other  Anouther instance.
+   */
+  SensorController& operator= (SensorController& other) = delete;
     
-    SensorController(SensorController&&) noexcept;
+  /**
+   * \brief            Move contructor.
+   * \param[in] other  Anouther instance.
+   */
+  SensorController(SensorController&& other) noexcept;
 
-    SensorController& operator= (SensorController&&) noexcept;
+  /**
+   * \brief           Move operator.
+   * \param[in] other Anouther instance.
+   */
+  SensorController& operator= (SensorController&& other) noexcept;
 
-    ~SensorController();
+  /**
+   * \brief Class destructor.
+   */
+  ~SensorController();
 
-    bool isOpen();
+  /**
+   * \brief  Function for checking if process is running.
+   * \return True if sensor process is running, false otherwise.
+   */
+  bool isOpen();
 
-    void startProcess();
+  /**
+   * \brief Function for starting current process.
+   */
+  void startProcess();
 
-    void killProcess();
+  /**
+   * \brief Function for teminating current process.
+   */
+  void killProcess();
 
 signals:
 
-    void newData(int id,QVector<double>);
+  /**
+   * \brief             Signal for sending new data from sensor to executor.
+   * \param[in] id      Id of current server.
+   * \param[in] params  Data.
+   */
+  void newData(int id, QVector<double> params);
 
 public slots:
 
-    void writeParemetrs(QVector<double>);
+  /**
+   * \brief             Slot for sending data to sensor.
+   * \param[in] params  Data for sending.
+   */
+  void writeParemetrs(QVector<double> params);
 
 private:
 
-    std::unique_ptr<QProcess> _sensorProcess;
+  /**
+   * \brief Pointer to Qt class for wotking with proceses.
+   */
+  std::unique_ptr<QProcess> _sensorProcess;
 
-    QString _programName;
+  /**
+   * \brief Name of program.
+   */
+  QString _programName;
 
-    QString _directoryForProcess;
+  /**
+   * \brief Directory name for process.
+   */
+  QString _directoryForProcess;
 
-    int _numberOfElementsToRead;
+  /**
+   * \brief Number of elements for receiving in one block.
+   */
+  int _numberOfElementsToRead;
 
-    int _numberOfElementsToSend;
+  /**
+   * \brief Size of sending block.
+   */
+  int _numberOfElementsToSend;
 
-    int _id;
+  /**
+   * \brief Id of current sensor.
+   */
+  int _id;
 
-    bool _isOpen;
+  /**
+   * \brief Flag if sensor process is running.
+   */
+  bool _isOpen;
 
 signals:
 
-    void signalToComputeInAnoutherThread(std::function<void()> func);
+  /**
+   * \brief           Signal for intialising Object in anouther thread.
+   * \param[in] func  Lyambda with code for initialasing.
+   */
+  void signalToComputeInAnoutherThread(std::function<void()> func);
 
 private slots:
 
-    void newError(QProcess::ProcessError error);
+  /**
+   * \brief           Slot for processing error from sensor process.
+   * \param[in] error Process code error.
+   */
+  void newError(QProcess::ProcessError error);
 
-    void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
+  /**
+   * \brief                 Function for processing process exit.
+   * \param[in] exitCode    Exit code of process.
+   * \param[in] exitStatus  Status of exit.
+   */
+  void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
-    void processHaveStarted();
+  /**
+   * \brief Slot for processing starting of process.
+   */
+  void processHaveStarted();
 
-    void newErrorMessage();
+  /**
+   * \brief Slot for processing new error from stderr.
+   */
+  void newErrorMessage();
 
-    void newMessage();
+  /**
+   * \brief Slot for processing new message from stdout.
+   */
+  void newMessage();
 
 };
 #endif // SENSOR_CONTROLLER_H
