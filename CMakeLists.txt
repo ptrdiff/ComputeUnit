@@ -33,6 +33,7 @@ add_subdirectory ("ComputerVisionSystem")
 add_subdirectory ("RobotConnector")
 add_subdirectory ("RCAConnector")
 add_subdirectory ("SensorAdapter")
+add_subdirectory ("MathModule")
 add_subdirectory ("Executor")
 add_executable(${PROJECT_NAME} main.cpp)
 

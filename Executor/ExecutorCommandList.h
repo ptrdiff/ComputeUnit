@@ -1,5 +1,5 @@
-#ifndef EXECUTOR_COMMAND_LIST
-#define EXECUTOR_COMMAND_LIST
+#ifndef EXECUTOR_COMMAND_LIST_H
+#define EXECUTOR_COMMAND_LIST_H
 
 enum class ExectorCommand
 {
@@ -12,4 +12,4 @@ enum class ExectorCommand
   INVALID = -1
 };
 
-#endif
+#endif // EXECUTOR_COMMAND_LIST_H

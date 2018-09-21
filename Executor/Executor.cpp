@@ -6,13 +6,14 @@
 #include <QCoreApplication>
 
 Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector,
-  SensorAdapter &sensorAdapter, QObject *parent) try :
+  SensorAdapter &sensorAdapter, MathModule& mathModule, QObject *parent) try :
   QObject(parent),
   _wasFirstPoint(false),
   _lastSendPoint({ 0,0,0,0,-90,0 }),
   _controlCenterConnector(controlCenterConnector),
   _robotConnector(robotConnector),
   _sensorAdapter(sensorAdapter),
+  _mathModule(mathModule),
   _commandTable({
                     {ExectorCommand::SHUT_DOWN, {&Executor::shutDownComputeUnit, -1}},
                     {ExectorCommand::SEND_TO_ROBOT, {&Executor::sendRobotMoveCommand, 7}},
@@ -122,6 +123,8 @@ void Executor::sendRobotMoveCommand(QVector<double> params)
 
   double speed = DEFAULT_SPEED;
 
+  params = _mathModule.sendToRobotTransformation(params);
+
   if (_wasFirstPoint)
   {
     speed = 0.;
@@ -161,6 +164,8 @@ void Executor::sendControlCenterRobotPosition(QVector<double> params)
   }
   qInfo() << QString("Start sending command to Control Center. Parameters: %1").arg(dataString);
   const auto startChrono = std::chrono::steady_clock::now();
+
+  params = _mathModule.sendToRCATransformation(params);
 
   emit signalWriteToControlCenter(std::move(params));
 
@@ -237,7 +242,7 @@ void Executor::askSensor(QVector<double> params)
   {
     if (_sensorAdapter.isOpen(elem))
     {
-      _sensorAdapter.sendCurPosition(elem, _lastSendPoint);
+      _sensorAdapter.sendCurPosition(elem, _mathModule.sendToSensorTransformation(_lastSendPoint));
     }
   }
 

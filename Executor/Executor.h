@@ -10,6 +10,7 @@
 #include "RobotConnector/RobotConnector.h"
 #include "RCAConnector/RCAConnector.h"
 #include "SensorAdapter/SensorAdapter.h"
+#include "MathModule/MathModule.h"
 #include "ExecutorCommandList.h"
 
 /**
@@ -42,10 +43,11 @@ public:
      * \param[in] controlCenterConnector  Instance of RCAConnector.
      * \param[in] robotConnector          Instance of RobotConnector.
      * \param[in] sensorAdapter           Insatnce of SensorAdapter.
-     * \param[in] parent 
+     * \param[in] mathModule              Instance of MathModule.
+     * \param[in] parent                  Previous qt object.
      */
     Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, 
-      SensorAdapter& sensorAdapter, QObject *parent = nullptr);
+      SensorAdapter& sensorAdapter, MathModule& mathModule, QObject *parent = nullptr);
 
 signals:
 
@@ -108,9 +110,14 @@ private:
     RobotConnector&                                                        _robotConnector;
 
     /**
-     * \brief Adaptor for adding sensor ot CU.
+     * \brief Adaptor for adding sensor to CU.
      */
     SensorAdapter&                                                         _sensorAdapter;
+
+    /**
+     * \brief Math for params transformation.
+     */
+    MathModule&                                                            _mathModule;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it

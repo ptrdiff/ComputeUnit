@@ -3,7 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project(Executor)
+project(MathModule)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -13,8 +13,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(${PROJECT_NAME} STATIC
-    Executor.h
-    Executor.cpp
+    MathModule.h
+    MathModule.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -24,10 +24,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
-    RobotConnector
-    RCAConnector
-    SensorAdapter
-    MathModule
 )
-
-add_subdirectory ("Tests")

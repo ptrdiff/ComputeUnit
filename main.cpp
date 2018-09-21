@@ -1,9 +1,13 @@
-﻿#include <QtCore/QCoreApplication>
-#include <QDateTime>
-#include "Executor/Executor.h"
-
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
+#include <QtCore/QCoreApplication>
+#include <QDateTime>
+
+#include "Executor/Executor.h"
+#include "RCAConnector/RCAConnector.h"
+#include "RobotConnector/RobotConnector.h"
+#include "SensorAdapter/SensorAdapter.h"
+#include "MathModule/MathModule.h"
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -47,7 +51,8 @@ int main(int argc, char *argv[])
     //RobotConnector robotConnector("172.27.221.60", 59002);
     RobotConnector robotConnector("localhost", 59002);
     SensorAdapter sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6, -1, "SensorAdapter"} });
-    Executor executor(rcaConnector,robotConnector, sensorAdapter);
+    MathModule mathModule;
+    Executor executor(rcaConnector,robotConnector, sensorAdapter, mathModule);
 
     return a.exec();
     }
