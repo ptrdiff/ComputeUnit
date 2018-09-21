@@ -1,19 +1,23 @@
 #include "Executor.h"
 
+#include <chrono>
+
+#include <QDebug>
 #include <QCoreApplication>
 
-Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent) try :
+Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector,
+  SensorAdapter &sensorAdapter, QObject *parent) try :
 QObject(parent),
 _wasFirstPoint(false),
 _lastSendPoint({0,0,0,0,-90,0}),
 _controlCenterConnector(controlCenterConnector),
 _robotConnector(robotConnector),
-_sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6, -1, "SensorAdapter"} }),
+_sensorAdapter(sensorAdapter),
 _commandTable({
                   {"m", {&Executor::sendRobotMoveCommand, 7}},
                   {"a", {&Executor::sendControlCenterRobotPosition, 6}},
                   {"e", {&Executor::shutDownComputeUnit, -1}},
-                  {"s", {&Executor::NewSensorData, -1}},
+                  {"s", {&Executor::newSensorData, -1}},
                   {"f", {&Executor::askSensor, -1}}
 })
 {
@@ -188,7 +192,7 @@ void Executor::slotToSocketError()
   shutDownComputeUnit({ -1 });
 }
 
-void Executor::NewSensorData(QVector<double> params)
+void Executor::newSensorData(QVector<double> params)
 {
     QString dataString;
     for (auto &i : params)

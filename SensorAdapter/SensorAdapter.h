@@ -3,8 +3,10 @@
 
 #include <memory>
 #include <vector>
+#include <tuple>
 
 #include <QObject>
+#include <QString>
 
 #include "SensorController.h"
 

@@ -1,11 +1,11 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
-#include <array>
 #include <unordered_map>
 
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 #include "RobotConnector/RobotConnector.h"
 #include "RCAConnector/RCAConnector.h"
@@ -41,9 +41,11 @@ public:
      *                                    control center server.
      * \param[in] controlCenterConnector  Instance of RCAConnector.
      * \param[in] robotConnector          Instance of RobotConnector.
+     * \param[in] sensorAdapter           Insatnce of SensorAdapter.
      * \param[in] parent 
      */
-    Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent = nullptr);
+    Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, 
+      SensorAdapter& sensorAdapter, QObject *parent = nullptr);
 
 signals:
 
@@ -88,7 +90,7 @@ private:
     /**
      * \brief Flag if first point was send to robot.
      */
-    bool                                                                _wasFirstPoint{false};
+    bool                                                               _wasFirstPoint{false};
 
     /**
      * \brief Array describing last point, sended to robot.
@@ -98,17 +100,17 @@ private:
     /**
      * \brief Adaptor for communication with buismess layer.
      */
-    RCAConnector&                                                        _controlCenterConnector;
+    RCAConnector&                                                      _controlCenterConnector;
 
     /**
      * \brief Adaptor for communication with robot.
      */
-    RobotConnector&                                                      _robotConnector;
+    RobotConnector&                                                    _robotConnector;
 
     /**
      * \brief Adaptor for adding sensor ot CU.
      */
-    SensorAdapter _sensorAdapter;
+    SensorAdapter&                                                     _sensorAdapter;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it
@@ -138,13 +140,13 @@ private:
      * \brief            Function for processing new data from sensor.
      * \param[in] params First number is id of sensor, other is data from this sensor.
      */
-    void NewSensorData(QVector<double> params);
+    void newSensorData(QVector<double> params);
 
     /**
      * \brief            Function for sending data to sensor.
      * \param[in] params First number is id of sensor, other is data from this sensor.
      */
-    void askSensor(QVector<double>);
+    void askSensor(QVector<double> params);
 };
 
 //todo complit doxygen

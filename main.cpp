@@ -25,7 +25,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
   QDateTime now = QDateTime::currentDateTime();
   now.setOffsetFromUtc(now.offsetFromUtc());
   std::ofstream out("log.txt", std::ios_base::app);
-  out << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
+  std::cout << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
       now.toString(Qt::ISODateWithMs),
       localMsg.constData(),
       context.function,
@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
     RCAConnector rcaConnector("localhost", 9099);
     //RobotConnector robotConnector("172.27.221.60", 59002);
     RobotConnector robotConnector("localhost", 59002);
-    Executor executor(rcaConnector,robotConnector);
+    SensorAdapter sensorAdapter({ {"SensorAdapter/tmp/echo.exe",6, -1, "SensorAdapter"} });
+    Executor executor(rcaConnector,robotConnector, sensorAdapter);
 
     return a.exec();
     }

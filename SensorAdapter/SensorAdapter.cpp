@@ -1,5 +1,6 @@
 #include "SensorAdapter.h"
 #include <iostream>
+#include <tuple>
 #include <QVector>
 
 SensorAdapter::SensorAdapter(const std::vector<std::tuple<QString, int, int, QString>>& 
