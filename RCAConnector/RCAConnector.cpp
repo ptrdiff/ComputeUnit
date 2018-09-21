@@ -41,11 +41,6 @@ void RCAConnector::slotToReadyRead()
     locData.skipWhiteSpace();
   }
 
-  const auto endChrono = std::chrono::steady_clock::now();
-  const auto durationChrono = 
-    std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Complete reading from server: %1 ms").arg(durationChrono / 1000.0);
-
   ExectorCommand command;
 
   if(token == "m")
@@ -60,6 +55,11 @@ void RCAConnector::slotToReadyRead()
   {
     command = ExectorCommand::INVALID;
   }
+
+  const auto endChrono = std::chrono::steady_clock::now();
+  const auto durationChrono = 
+    std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Complete reading from server: %1 ms").arg(durationChrono / 1000.0);
   
   emit signalNextCommand(command, coords);
 }

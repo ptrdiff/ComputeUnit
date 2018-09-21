@@ -15,11 +15,11 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
   _sensorAdapter(sensorAdapter),
   _mathModule(mathModule),
   _commandTable({
-                    {ExectorCommand::SHUT_DOWN, {&Executor::shutDownComputeUnit, -1}},
-                    {ExectorCommand::SEND_TO_ROBOT, {&Executor::sendRobotMoveCommand, 7}},
-                    {ExectorCommand::SEND_TO_RCA, {&Executor::sendControlCenterRobotPosition, 6}},
-                    {ExectorCommand::SEND_TO_SENSOR, {&Executor::askSensor, -1}},
-                    {ExectorCommand::RECV_FROM_SENSOR, {&Executor::newSensorData, -1}}
+                 {ExectorCommand::SHUT_DOWN,        {&Executor::shutDownComputeUnit,           -1}},
+                 {ExectorCommand::SEND_TO_ROBOT,    {&Executor::sendRobotMoveCommand,           7}},
+                 {ExectorCommand::SEND_TO_RCA,      {&Executor::sendControlCenterRobotPosition, 6}},
+                 {ExectorCommand::SEND_TO_SENSOR,   {&Executor::askSensor,                     -1}},
+                 {ExectorCommand::RECV_FROM_SENSOR, {&Executor::newSensorData,                 -1}}
     })
 {
   qInfo() << QString("Create Executor.");
@@ -67,8 +67,8 @@ void Executor::slotToApplyCommand(ExectorCommand command, QVector<double> params
   {
     dataString.push_back(QString("%1 ").arg(i));
   }
-  qInfo() << QString("Start applying command. Id: %1, Parameters: %2").arg(QString(int(command)),
-    dataString);
+  qInfo() << QString("Start applying command. Id: %1, Parameters: %2").arg(
+    QString("%1").arg(int(command)), dataString);
   const auto startChrono = std::chrono::steady_clock::now();
 
   if (_commandTable.count(command) == 0)

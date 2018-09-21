@@ -16,7 +16,7 @@
  */
 class SensorAdapter : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
 
   /**
@@ -43,7 +43,7 @@ public:
   void sendCurPosition(int id, QVector<double> params);
 
 protected:
-    
+
   /**
    * \brief Vector with controllers of process controller.
    */
@@ -52,18 +52,12 @@ protected:
 signals:
 
   /**
-   * \brief             Signal for sending position to robot.
-   * \param[in] params  First number is id of sensor for sending data, other is data for sending.
-   */
-  void signalSendPosition(QVector<double> params);
-
-  /**
    * \brief              Signal for sending data from sensor to executor.
    * \param[in] command  Id of command.
    * \param[in] params   Vector with data.
    */
   void signalGenerateCommand(ExectorCommand command, QVector<double> params);
-    
+
 protected slots:
 
   /**
