@@ -36,5 +36,5 @@ void SensorAdapter::sendCurPosition(int id, QVector<double> params)
 void SensorAdapter::slotToGetNewParametrs(int id, QVector<double> data)
 {
     data.push_front(id);
-    emit signalGenerateCommand("s", data);
+    emit signalGenerateCommand(ExectorCommand::RECV_FROM_SENSOR, data);
 }

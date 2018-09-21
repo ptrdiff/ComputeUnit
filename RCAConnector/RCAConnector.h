@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QTcpSocket>
 
+#include "Executor/ExecutorCommandList.h"
+
 class RCAConnector : public QObject
 {
   Q_OBJECT
@@ -19,7 +21,7 @@ signals:
 
   void signalSocketError();
 
-  void signalNextCommand(QString, QVector<double>);
+  void signalNextCommand(ExectorCommand, QVector<double>);
 
 public slots:
 

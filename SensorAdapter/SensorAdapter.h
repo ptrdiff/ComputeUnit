@@ -9,6 +9,7 @@
 #include <QString>
 
 #include "SensorController.h"
+#include "Executor/ExecutorCommandList.h"
 
 /**
  * \brief Adapter for adding sensors.
@@ -57,11 +58,11 @@ signals:
   void signalSendPosition(QVector<double> params);
 
   /**
-   * \brief             Signal for sending data from sensor to executor.
-   * \param[in] id      Id of sensor.
-   * \param[in] params  Vector with data.
+   * \brief              Signal for sending data from sensor to executor.
+   * \param[in] command  Id of command.
+   * \param[in] params   Vector with data.
    */
-  void signalGenerateCommand(const QString& id, QVector<double> params);
+  void signalGenerateCommand(ExectorCommand command, QVector<double> params);
     
 protected slots:
 
