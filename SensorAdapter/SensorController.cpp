@@ -17,8 +17,8 @@ SensorController::SensorController(int id, SensorConfig config, QObject* parent)
 {
   qInfo() << QString("Create SensorController. "
       "Id: %1. ProgName: %2. ReadBlockSize: %3. SendBlockSize: %4. Directory: %5.").
-  arg(QString("%1").arg(_id), _programName, QString("%1").arg(_numberOfElementsToRead),
-    QString("%1").arg(_numberOfElementsToSend), _directoryForProcess);
+  arg(QString::number(_id), _programName, QString::number(_numberOfElementsToRead),
+    QString::number(_numberOfElementsToSend), _directoryForProcess);
   const auto startChrono = std::chrono::steady_clock::now();
 
   _sensorProcess->setProgram(_programName);
@@ -239,7 +239,8 @@ void SensorController::processHaveStarted()
 void SensorController::newErrorMessage()
 {
   const auto errorData = _sensorProcess->readAllStandardError();
-  qWarning() << QString("error from process %1: %2").arg(_programName, QString(errorData));
+  qWarning() << QString("error from process %1: %2").arg(_programName, 
+    static_cast<QString>(errorData));
 }
 
 void SensorController::newMessage()

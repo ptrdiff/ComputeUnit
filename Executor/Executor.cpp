@@ -68,12 +68,12 @@ void Executor::slotToApplyCommand(ExectorCommand command, QVector<double> params
     dataString.push_back(QString("%1 ").arg(i));
   }
   qInfo() << QString("Start applying command. Id: %1, Parameters: %2").arg(
-    QString("%1").arg(int(command)), dataString);
+    QString::number(static_cast<int>(command)), dataString);
   const auto startChrono = std::chrono::steady_clock::now();
 
   if (_commandTable.count(command) == 0)
   {
-    qCritical() << QString("Unknown command '%1' ").arg(QString(int(command)));
+    qCritical() << QString("Unknown command '%1' ").arg(QString::number(static_cast<int>(command)));
   }
   else
   {
@@ -83,7 +83,7 @@ void Executor::slotToApplyCommand(ExectorCommand command, QVector<double> params
       qCritical() <<
         QString("Too less arguments for '%1' command (need minimum '%2', has '%3').").arg
         (
-          QString(int(command)),
+          QString::number(static_cast<int>(command)),
           QString::number(curFunction.second),
           QString::number(params.size())
         );
@@ -95,7 +95,7 @@ void Executor::slotToApplyCommand(ExectorCommand command, QVector<double> params
         qWarning() <<
           QString("Too much arguments for '%1' command (need minimum '%2', has '%3').").arg
           (
-            QString(int(command)),
+            QString::number(static_cast<int>(command)),
             QString::number(curFunction.second),
             QString::number(params.size())
           );

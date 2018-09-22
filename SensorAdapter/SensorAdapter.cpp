@@ -33,7 +33,7 @@ SensorAdapter::SensorAdapter(const std::vector<SensorConfig>& sensorsDescription
 
 bool SensorAdapter::isOpen(size_t id)
 {
-  qInfo() << QString("Check sensor with params: [%1]").arg(id);
+  qInfo() << QString("Check sensor. Id: %1.").arg(id);
   const auto startChrono = std::chrono::steady_clock::now();
 
   bool result = false;
