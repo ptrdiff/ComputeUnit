@@ -4,14 +4,13 @@
 
 #include <sstream>
 
-SensorController::SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
-  int numberOfElementsToSend, QString directoryForProcess, QObject* parent) :
+SensorController::SensorController(int id, SensorConfig config, QObject* parent) :
   QObject(parent),
   _sensorProcess(std::make_unique<QProcess>()),
-  _programName(std::move(sensorProgramName)),
-  _directoryForProcess(std::move(directoryForProcess)),
-  _numberOfElementsToRead(numberOfElementsToRead),
-  _numberOfElementsToSend(numberOfElementsToSend),
+  _programName(config._sensorProgramName),
+  _directoryForProcess(config._sensorFolderName),
+  _numberOfElementsToRead(config._inputBlockSize),
+  _numberOfElementsToSend(config._outputBlockSize),
   _id(id),
   _isOpen(false),
   _needToRestart(true)
@@ -141,8 +140,8 @@ void SensorController::startProcess()
 
   if (_sensorProcess->state() == QProcess::ProcessState::NotRunning)
   {
+    qDebug() << QString("process %1 is going to start").arg(_programName);
     _sensorProcess->start();
-    qDebug() << QString("process %1 is starting").arg(_programName);
   }
 
   const auto endChrono = std::chrono::steady_clock::now();

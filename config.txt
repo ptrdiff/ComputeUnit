@@ -1,0 +1,6 @@
+localhost 9099
+localhost 59002
+1
+SensorAdapter/echoSensor/echoSensor.exe
+SensorAdapter
+6 -1

@@ -5,16 +5,13 @@
 #include <QVector>
 #include <QDebug>
 
-SensorAdapter::SensorAdapter(const std::vector<std::tuple<QString, int, int, QString>>&
-  sensorsDescription, QObject *parent) :
+SensorAdapter::SensorAdapter(const std::vector<SensorConfig>& sensorsDescription, QObject *parent):
   QObject(parent)
 {
   QString stringParams = "";
   for (auto& elem : sensorsDescription)
   {
-    stringParams.push_back(QString("{ %1, %2, %3, %4 }").arg(std::get<0>(elem), 
-      QString("%1").arg(std::get<1>(elem)), QString("%1").arg(std::get<2>(elem)),
-      std::get<3>(elem)));
+    stringParams.push_back(elem.toQString());
   }
   qInfo() << QString("Create SensorAdapter with params: [%1]").arg(stringParams);
   const auto startChrono = std::chrono::steady_clock::now();
@@ -22,9 +19,7 @@ SensorAdapter::SensorAdapter(const std::vector<std::tuple<QString, int, int, QSt
   _sensorsProcessControllers.reserve(sensorsDescription.size());
   for (size_t i = 0; i < sensorsDescription.size(); ++i)
   {
-    _sensorsProcessControllers.emplace_back(i, std::get<0>(sensorsDescription[i]),
-      std::get<1>(sensorsDescription[i]), std::get<2>(sensorsDescription[i]),
-      std::get<3>(sensorsDescription[i]));
+    _sensorsProcessControllers.emplace_back(i, sensorsDescription[i]);
     connect(&_sensorsProcessControllers[i], &SensorController::newData, this,
       &SensorAdapter::slotToGetNewParametrs);
     _sensorsProcessControllers[i].startProcess();

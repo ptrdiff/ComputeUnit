@@ -9,6 +9,7 @@
 #include <QString>
 
 #include "SensorController.h"
+#include "SensorConfig.h"
 #include "Executor/ExecutorCommandList.h"
 
 /**
@@ -25,7 +26,7 @@ public:
    * \param[in] parent              QObject paraent.
    */
   explicit SensorAdapter(
-    const std::vector<std::tuple<QString, int, int, QString>>& sensorsDescription,
+    const std::vector<SensorConfig>& sensorsDescription,
     QObject *parent = nullptr);
 
   /**

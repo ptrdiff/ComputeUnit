@@ -6,6 +6,8 @@
 #include <QThread>
 #include <memory>
 
+#include "SensorConfig.h"
+
 /**
  * \brief Controller for work with process.
  */
@@ -16,16 +18,12 @@ class SensorController : public QObject
 public:
 
   /**
-   * \brief                             Constructor with creating sensor process.
-   * \param[in] id                      Id of current sensor.
-   * \param[in] sensorProgramName       Program name for launching.
-   * \param[in] numberOfElementsToRead  Size of one input block.
-   * \param[in] numberOfElementsToSend  Size of one ouput block.
-   * \param[in] directoryForProcess     Directory for process.
-   * \param[in] parent                  Qobject parent.
+   * \brief             Constructor with creating sensor process.
+   * \param[in] id      Id of current sensor.
+   * \param[in] config  Parametrs for current sensor.
+   * \param[in] parent  Qobject parent.
    */
-  SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
-    int numberOfElementsToSend = -1, QString directoryForProcess = "",
+  SensorController(int id, SensorConfig config,
     QObject * parent = nullptr);
 
   /**

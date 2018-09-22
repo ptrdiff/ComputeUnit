@@ -19,6 +19,8 @@ add_library(${PROJECT_NAME} STATIC
     SensorAdapter.cpp
     SensorController.h
     SensorController.cpp
+    SensorConfig.h
+    SensorConfig.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
