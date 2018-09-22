@@ -35,7 +35,7 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
   QDateTime now = QDateTime::currentDateTime();
   now.setOffsetFromUtc(now.offsetFromUtc());
   std::ofstream out("log.txt", std::ios_base::app);
-  std::cout << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
+  out << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
     now.toString(Qt::ISODateWithMs),
     localMsg.constData(),
     context.function,
@@ -44,6 +44,14 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
     msgType
   ).toStdString();
   out.close();
+  std::cout << QString("%1 %6: %2 (%3, %4:%5)\n").arg(
+    now.toString(Qt::ISODateWithMs),
+    localMsg.constData(),
+    context.function,
+    context.file,
+    QString::number(context.line),
+    msgType
+  ).toStdString();
 } // TODO add feature to change stream output and formatting output(table or something like this)
 
 void skipComments(QTextStream& in)
@@ -86,18 +94,18 @@ int main(int argc, char *argv[])
       in >> RCAIpAdress >> RCAPort;
       RCAConnector rcaConnector(RCAIpAdress.toStdString(), RCAPort);
       //RobotConnector robotConnector("172.27.221.60", 59002);
-      
+
       skipComments(in);
       QString RobotIpAdress;
       int RobotPort;
       in >> RobotIpAdress >> RobotPort;
       RobotConnector robotConnector(RobotIpAdress.toStdString(), RobotPort);
-      
+
       skipComments(in);
       int numberOfSensors;
       in >> numberOfSensors;
       std::vector<SensorConfig> sensorDescriprion;
-      for(int i=0;i<numberOfSensors;++i)
+      for (int i = 0; i < numberOfSensors; ++i)
       {
         skipComments(in);
         const QString programName = in.readLine();
@@ -106,19 +114,19 @@ int main(int argc, char *argv[])
         skipComments(in);
         int inputBlock, outputBlock;
         in >> inputBlock >> outputBlock;
-        sensorDescriprion.emplace_back(SensorConfig(programName, programDirectory, inputBlock, 
+        sensorDescriprion.emplace_back(SensorConfig(programName, programDirectory, inputBlock,
           outputBlock));
       }
       SensorAdapter sensorAdapter(sensorDescriprion);
       MathModule mathModule;
       Executor executor(rcaConnector, robotConnector, sensorAdapter, mathModule);
-    }
-    else
-    {
-      qCritical() << QString("Can't open config file");
-    }
 
-    return a.exec();
+      return a.exec();
+    }
+    
+    qCritical() << QString("Can't open config file");
+    return -1;
+    
   }
   catch (std::exception &exp)
   {
