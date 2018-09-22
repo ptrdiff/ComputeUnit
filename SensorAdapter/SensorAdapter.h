@@ -3,17 +3,21 @@
 
 #include <memory>
 #include <vector>
+#include <tuple>
 
 #include <QObject>
+#include <QString>
 
 #include "SensorController.h"
+#include "SensorConfig.h"
+#include "Executor/ExecutorCommandList.h"
 
 /**
  * \brief Adapter for adding sensors.
  */
 class SensorAdapter : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
 
   /**
@@ -22,7 +26,7 @@ public:
    * \param[in] parent              QObject paraent.
    */
   explicit SensorAdapter(
-    const std::vector<std::tuple<QString, int, int, QString>>& sensorsDescription,
+    const std::vector<SensorConfig>& sensorsDescription,
     QObject *parent = nullptr);
 
   /**
@@ -40,7 +44,7 @@ public:
   void sendCurPosition(int id, QVector<double> params);
 
 protected:
-    
+
   /**
    * \brief Vector with controllers of process controller.
    */
@@ -49,18 +53,12 @@ protected:
 signals:
 
   /**
-   * \brief             Signal for sending position to robot.
-   * \param[in] params  First number is id of sensor for sending data, other is data for sending.
+   * \brief              Signal for sending data from sensor to executor.
+   * \param[in] command  Id of command.
+   * \param[in] params   Vector with data.
    */
-  void signalSendPosition(QVector<double> params);
+  void signalGenerateCommand(ExectorCommand command, QVector<double> params);
 
-  /**
-   * \brief             Signal for sending data from sensor to executor.
-   * \param[in] id      Id of sensor.
-   * \param[in] params  Vector with data.
-   */
-  void signalGenerateCommand(const QString& id, QVector<double> params);
-    
 protected slots:
 
   /**

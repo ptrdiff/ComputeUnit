@@ -3,7 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project(SensorAdapter)
+project(MathModule)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -12,15 +12,9 @@ set(CMAKE_AUTOMOC ON)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_subdirectory ("echoSensor")
-
 add_library(${PROJECT_NAME} STATIC
-    SensorAdapter.h
-    SensorAdapter.cpp
-    SensorController.h
-    SensorController.cpp
-    SensorConfig.h
-    SensorConfig.cpp
+    MathModule.h
+    MathModule.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

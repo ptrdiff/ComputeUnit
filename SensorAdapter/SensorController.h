@@ -6,27 +6,25 @@
 #include <QThread>
 #include <memory>
 
+#include "SensorConfig.h"
+
 /**
  * \brief Controller for work with process.
  */
 class SensorController : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
 
   /**
-   * \brief                             Constructor with creating sensor process.
-   * \param[in] id                      Id of current sensor.
-   * \param[in] sensorProgramName       Program name for launching.
-   * \param[in] numberOfElementsToRead  Size of one input block.
-   * \param[in] numberOfElementsToSend  Size of one ouput block.
-   * \param[in] directoryForProcess     Directory for process.
-   * \param[in] parent                  Qobject parent.
+   * \brief             Constructor with creating sensor process.
+   * \param[in] id      Id of current sensor.
+   * \param[in] config  Parametrs for current sensor.
+   * \param[in] parent  Qobject parent.
    */
-  SensorController(int id, QString sensorProgramName, int numberOfElementsToRead,
-        int numberOfElementsToSend = -1, QString directoryForProcess = "",
-        QObject * parent = nullptr);
+  SensorController(int id, SensorConfig config,
+    QObject * parent = nullptr);
 
   /**
    * \brief           Deleted copy constructor.
@@ -39,7 +37,7 @@ public:
    * \param[in] other  Anouther instance.
    */
   SensorController& operator= (SensorController& other) = delete;
-    
+
   /**
    * \brief            Move contructor.
    * \param[in] other  Anouther instance.
@@ -81,6 +79,12 @@ signals:
    * \param[in] params  Data.
    */
   void newData(int id, QVector<double> params);
+
+  /**
+   * \brief             Signal for send data to sensor.
+   * \param[in] params  Data for sending.
+   */
+  void signalToWriteParams(QVector<double> params);
 
 public slots:
 
@@ -126,6 +130,11 @@ private:
    * \brief Flag if sensor process is running.
    */
   bool _isOpen;
+
+  /**
+   * \brief Flag is crashed process need to be restarted.
+   */
+  bool _needToRestart;
 
 signals:
 

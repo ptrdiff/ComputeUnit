@@ -27,6 +27,7 @@ target_link_libraries(${PROJECT_NAME}
     RobotConnector
     RCAConnector
     SensorAdapter
+    MathModule
 )
 
 add_subdirectory ("Tests")

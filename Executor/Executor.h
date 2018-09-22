@@ -1,16 +1,17 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
-#include <array>
 #include <unordered_map>
 
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 #include "RobotConnector/RobotConnector.h"
 #include "RCAConnector/RCAConnector.h"
 #include "SensorAdapter/SensorAdapter.h"
-
+#include "MathModule/MathModule.h"
+#include "ExecutorCommandList.h"
 
 /**
  * \brief Executor for processing elememtary commands.
@@ -41,9 +42,12 @@ public:
      *                                    control center server.
      * \param[in] controlCenterConnector  Instance of RCAConnector.
      * \param[in] robotConnector          Instance of RobotConnector.
-     * \param[in] parent 
+     * \param[in] sensorAdapter           Insatnce of SensorAdapter.
+     * \param[in] mathModule              Instance of MathModule.
+     * \param[in] parent                  Previous qt object.
      */
-    Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, QObject *parent = nullptr);
+    Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, 
+      SensorAdapter& sensorAdapter, MathModule& mathModule, QObject *parent = nullptr);
 
 signals:
 
@@ -68,10 +72,10 @@ public slots:
 
     /**
      * \brief               Slot for processing commands from services.
-     * \param[in] id        Id of command.
+     * \param[in] command   Id of command.
      * \param[in] params    Parametrs for this command.
      */
-    void slotToApplyCommand(const QString& id, QVector<double> params);
+    void slotToApplyCommand(ExectorCommand command, QVector<double> params);
 
     /**
      * \brief Slot for processing socket errors.
@@ -88,33 +92,38 @@ private:
     /**
      * \brief Flag if first point was send to robot.
      */
-    bool                                                                _wasFirstPoint{false};
+    bool                                                                   _wasFirstPoint{false};
 
     /**
      * \brief Array describing last point, sended to robot.
      */
-    QVector<double>                                                    _lastSendPoint;
+    QVector<double>                                                        _lastSendPoint;
 
     /**
      * \brief Adaptor for communication with buismess layer.
      */
-    RCAConnector&                                                        _controlCenterConnector;
+    RCAConnector&                                                          _controlCenterConnector;
 
     /**
      * \brief Adaptor for communication with robot.
      */
-    RobotConnector&                                                      _robotConnector;
+    RobotConnector&                                                        _robotConnector;
 
     /**
-     * \brief Adaptor for adding sensor ot CU.
+     * \brief Adaptor for adding sensor to CU.
      */
-    SensorAdapter _sensorAdapter;
+    SensorAdapter&                                                         _sensorAdapter;
+
+    /**
+     * \brief Math for params transformation.
+     */
+    MathModule&                                                            _mathModule;
 
     /**
      * \brief Table of comprasion id of command with function for this command and number of it
      *        parametrs.
      */
-    std::unordered_map<std::string, std::pair<executableCommand, int>> _commandTable;
+    std::unordered_map<ExectorCommand, std::pair<executableCommand, int>> _commandTable;
 
     /**
      * \brief               Function for sending next point to robot.
@@ -138,13 +147,13 @@ private:
      * \brief            Function for processing new data from sensor.
      * \param[in] params First number is id of sensor, other is data from this sensor.
      */
-    void NewSensorData(QVector<double> params);
+    void newSensorData(QVector<double> params);
 
     /**
      * \brief            Function for sending data to sensor.
      * \param[in] params First number is id of sensor, other is data from this sensor.
      */
-    void askSensor(QVector<double>);
+    void askSensor(QVector<double> params);
 };
 
 //todo complit doxygen

@@ -6,6 +6,8 @@
 #include <QObject>
 #include <QTcpSocket>
 
+#include "Executor/ExecutorCommandList.h"
+
 class RobotConnector : public QObject
 {
  Q_OBJECT
@@ -19,7 +21,7 @@ class RobotConnector : public QObject
  signals:
 
   void signalSocketError();
-  void signalNextCommand(QString, QVector<double>);
+  void signalNextCommand(ExectorCommand, QVector<double>);
 
  public slots:
 

@@ -1,6 +1,7 @@
 #include "RobotConnector.h"
 
 #include <cmath>
+#include <chrono>
 
 RobotConnector::RobotConnector(std::string serverIP, int port, QObject *parent) :
     QObject(parent),
@@ -25,7 +26,7 @@ bool RobotConnector::isConnected() const
 void RobotConnector::slotToConnect()
 {
   qInfo() << QString("Start connection.");
-  auto startChrono = std::chrono::steady_clock::now();
+  const auto startChrono = std::chrono::steady_clock::now();
 
   _socket->connectToHost(_serverIP.c_str(), _port);
 
@@ -33,8 +34,9 @@ void RobotConnector::slotToConnect()
   {
     _socket->write("2 0 3 7 4 1 0");
 
-    auto endChrono = std::chrono::steady_clock::now();
-    auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+    const auto endChrono = std::chrono::steady_clock::now();
+    const auto durationChrono = 
+      std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Completed connection: %1 ms").arg(durationChrono / 1000.0);
   } else
   {
@@ -59,7 +61,7 @@ void RobotConnector::slotWriteToServer(QVector<double> data)
     dataString.push_back(QString("%1 ").arg(i));
   }
   qInfo() << QString("Start writing to server. Data: %1").arg(dataString);
-  auto startChrono = std::chrono::steady_clock::now();
+  const auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());
   dataStream << "1 ";
@@ -70,15 +72,16 @@ void RobotConnector::slotWriteToServer(QVector<double> data)
   dataStream << data.at(data.size() - 1);
   dataStream.flush();
 
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  const auto endChrono = std::chrono::steady_clock::now();
+  const auto durationChrono = 
+    std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Complete writing to server: %1 ms").arg(durationChrono / 1000.0);
 }
 
 void RobotConnector::slotToReadyRead()
 {
   qInfo() << QString("Start reading from server.");
-  auto startChrono = std::chrono::steady_clock::now();
+  const auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream locData(_socket.get());
 
@@ -91,9 +94,10 @@ void RobotConnector::slotToReadyRead()
     locData.skipWhiteSpace();
   }
 
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  const auto endChrono = std::chrono::steady_clock::now();
+  const auto durationChrono = 
+    std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Completed reading from server: %1 ms").arg(durationChrono / 1000.0);
 
-  emit signalNextCommand(QString("a"), coords);
+  emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
 }
