@@ -7,6 +7,8 @@
 #include <QDateTime>
 #include <QFile>
 #include <QDebug>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "Executor/Executor.h"
 #include "RCAConnector/RCAConnector.h"
@@ -54,27 +56,6 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
   ).toStdString();
 } // TODO add feature to change stream output and formatting output(table or something like this)
 
-void skipComments(QTextStream& in)
-{
-  if(!in.atEnd())
-  {
-    in.skipWhiteSpace();
-    QString token = in.read(1);
-    while(token == "#")
-    {
-      in.readLine();
-      if (!in.atEnd())
-      {
-        token = in.read(1);
-      }
-    }
-    if(!in.atEnd())
-    {
-      in.seek(in.pos() - 1);
-    }
-  }
-}
-
 int main(int argc, char *argv[])
 {
   try
@@ -82,48 +63,34 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
     QCoreApplication a(argc, argv);
 
-    QFile congFile("config.txt");
-
+    QFile congFile("../config.json");
     if (congFile.open(QIODevice::ReadOnly))
     {
-      QTextStream in(&congFile);
+        QString settings = congFile.readAll();
+        congFile.close();
+        QVariantMap config = QJsonDocument::fromJson(settings.toUtf8()).object().toVariantMap();
+        QMap RCAConnectorConfig = config["RCAConnector"].toMap();
+        QMap RobotConnectorConfig = config["RobotConnector"].toMap();
+        QMap SensorAdapterConfig = config["SensorAdapter"].toMap();
+        RCAConnector rcaConnector(RCAConnectorConfig["IPAdress"].toString().toStdString(),
+                                  RCAConnectorConfig["Port"].toInt());
+        RobotConnector robotConnector(RobotConnectorConfig["IPAdress"].toString().toStdString(),
+                                      RobotConnectorConfig["Port"].toInt());
+        std::vector<SensorConfig> sensorDescriprion;
+        for (int i = 0; i < SensorAdapterConfig["SensorCount"].toInt(); ++i)
+        {
+            sensorDescriprion.emplace_back(SensorConfig(
+                    SensorAdapterConfig["ProgramPath"].toString(),
+                    SensorAdapterConfig["ProgramFolder"].toString(),
+                    SensorAdapterConfig["Blocks"].toList()[0].toInt(),
+                    SensorAdapterConfig["Blocks"].toList()[1].toInt()));
+        }
+        SensorAdapter sensorAdapter(sensorDescriprion);
+        MathModule mathModule;
+        Executor executor(rcaConnector, robotConnector, sensorAdapter, mathModule);
 
-      skipComments(in);
-      QString RCAIpAdress;
-      int RCAPort;
-      in >> RCAIpAdress >> RCAPort;
-      RCAConnector rcaConnector(RCAIpAdress.toStdString(), RCAPort);
-      //RobotConnector robotConnector("172.27.221.60", 59002);
-
-      skipComments(in);
-      QString RobotIpAdress;
-      int RobotPort;
-      in >> RobotIpAdress >> RobotPort;
-      RobotConnector robotConnector(RobotIpAdress.toStdString(), RobotPort);
-
-      skipComments(in);
-      int numberOfSensors;
-      in >> numberOfSensors;
-      std::vector<SensorConfig> sensorDescriprion;
-      for (int i = 0; i < numberOfSensors; ++i)
-      {
-        skipComments(in);
-        const QString programName = in.readLine();
-        skipComments(in);
-        const QString programDirectory = in.readLine();
-        skipComments(in);
-        int inputBlock, outputBlock;
-        in >> inputBlock >> outputBlock;
-        sensorDescriprion.emplace_back(SensorConfig(programName, programDirectory, inputBlock,
-          outputBlock));
-      }
-      SensorAdapter sensorAdapter(sensorDescriprion);
-      MathModule mathModule;
-      Executor executor(rcaConnector, robotConnector, sensorAdapter, mathModule);
-
-      return a.exec();
+        return 0;
     }
-    
     qCritical() << QString("Can't open config file");
     return -1;
     
