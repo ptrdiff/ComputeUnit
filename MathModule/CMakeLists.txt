@@ -12,6 +12,12 @@ set(CMAKE_AUTOMOC ON)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+if(WIN32)
+    set(OpenCV_DIR "D:/Common Files/OpenCV/build/x64/vc14/lib")
+endif()
+
+find_package(OpenCV REQUIRED)
+
 add_library(${PROJECT_NAME} STATIC
     MathModule.h
     MathModule.cpp
@@ -28,4 +34,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
+    FanucModel
 )

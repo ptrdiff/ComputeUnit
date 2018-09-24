@@ -19,4 +19,4 @@ add_library(CamCalibWI STATIC CamCalibWI/CamCalibWI.cpp CamCalibWI/CameraCalibra
 target_link_libraries(CamCalibWI ${OpenCV_LIBS})
 
 add_library(ComputerVisionSystem STATIC CVS.cpp)
-target_link_libraries(ComputerVisionSystem ${OpenCV_LIBS} CamCalibWI ArucoMarker ../MathModule/FanucModel)
+target_link_libraries(ComputerVisionSystem ${OpenCV_LIBS} CamCalibWI ArucoMarker)
