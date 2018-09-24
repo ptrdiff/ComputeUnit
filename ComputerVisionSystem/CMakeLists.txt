@@ -18,8 +18,5 @@ endif()
 add_library(CamCalibWI STATIC CamCalibWI/CamCalibWI.cpp CamCalibWI/CameraCalibration/CameraCalibration.cpp)
 target_link_libraries(CamCalibWI ${OpenCV_LIBS})
 
-add_library(FanucModel STATIC FanucModel/RoboModelGeneral/RoboModelGeneral.cpp FanucModel/FanucModel.cpp)
-target_link_libraries(FanucModel ${OpenCV_LIBS})
-
 add_library(ComputerVisionSystem STATIC CVS.cpp)
-target_link_libraries(ComputerVisionSystem ${OpenCV_LIBS} CamCalibWI ArucoMarker FanucModel)
+target_link_libraries(ComputerVisionSystem ${OpenCV_LIBS} CamCalibWI ArucoMarker ../MathModule/FanucModel)

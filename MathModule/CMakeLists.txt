@@ -17,6 +17,10 @@ add_library(${PROJECT_NAME} STATIC
     MathModule.cpp
 )
 
+add_library(FanucModel STATIC FanucModel/RoboModelGeneral/RoboModelGeneral.cpp FanucModel/FanucModel.cpp)
+target_link_libraries(FanucModel ${OpenCV_LIBS})
+
+
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_MAIN_DIR}
 )

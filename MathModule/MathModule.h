@@ -1,7 +1,12 @@
 #ifndef MATH_MODULE_H
 #define MATH_MODULE_H
 
+#include <array>
+#include <vector>
+
 #include <QVector>
+
+#include "FanucModel/FanucModel.h"
 
 /**
  * \brief Class with math for params transformation.
@@ -30,6 +35,12 @@ public:
    * \return            Transformed params
    */
   QVector<double> sendToSensorTransformation(QVector<double> params);
+
+    /**
+   * \brief             Function for transformating params recived from sencor and sended to RCA.
+   */
+  QVector<std::array<double,7>>  sendAfterSensorTransformation(std::array<double, 6> jointCorners,
+                                                  std::vector<std::array<double,7>> objects);
 
 };
 
