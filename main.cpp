@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
         MathModule mathModule;
         Executor executor(rcaConnector, robotConnector, sensorAdapter, mathModule);
 
-        return 0;
+        return a.exec();
     }
     qCritical() << QString("Can't open config file");
     return -1;
