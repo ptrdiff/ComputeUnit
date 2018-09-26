@@ -9,7 +9,7 @@
 	},
 	"SensorAdapter":{
 		"SensorCount": 1,
-		"ProgramPath": "../SensorAdapter/echoSensor/echoSensor.exe",
+		"ProgramPath": "SensorAdapter/echoSensor/echoSensor.exe",
 		"ProgramFolder": "SensorAdapter",
 		"Blocks": [
 			6,

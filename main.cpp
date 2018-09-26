@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
     QCoreApplication a(argc, argv);
 
-    QFile congFile("../config.json");
+    QFile congFile("config.json");
     if (congFile.open(QIODevice::ReadOnly))
     {
         QString settings = congFile.readAll();
