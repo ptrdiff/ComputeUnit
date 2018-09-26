@@ -13,14 +13,17 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_library(${PROJECT_NAME} STATIC
-        RobotConnector.h
-        RobotConnector.cpp
+    RobotConnector.h
+    RobotConnector.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${PROJECT_MAIN_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
-    MultiThreadingWorker
 )
 
 if(UNIX)

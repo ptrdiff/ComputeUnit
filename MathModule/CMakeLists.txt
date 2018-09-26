@@ -3,7 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project(SensorAdapter)
+project(MathModule)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -12,16 +12,20 @@ set(CMAKE_AUTOMOC ON)
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_subdirectory ("echoSensor")
+if(WIN32)
+    set(OpenCV_DIR "D:/Common Files/OpenCV/build/x64/vc14/lib")
+endif()
+
+find_package(OpenCV REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
-    SensorAdapter.h
-    SensorAdapter.cpp
-    SensorController.h
-    SensorController.cpp
-    SensorConfig.h
-    SensorConfig.cpp
+    MathModule.h
+    MathModule.cpp
 )
+
+add_library(FanucModel STATIC FanucModel/RoboModelGeneral/RoboModelGeneral.cpp FanucModel/FanucModel.cpp)
+target_link_libraries(FanucModel ${OpenCV_LIBS})
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_MAIN_DIR}
@@ -30,4 +34,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     Qt5::Network
+    FanucModel
 )

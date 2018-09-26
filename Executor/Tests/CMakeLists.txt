@@ -12,7 +12,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_executable(${PROJECT_NAME} ExecutorTest.cpp)
-add_test(stets ${PROJECT_NAME})
+add_test(Name ExecutorTest COMMAND ${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME} 
     Qt5::Test

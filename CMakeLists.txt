@@ -18,6 +18,8 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(PROJECT_MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -27,11 +29,11 @@ find_package(Threads)
 find_package(Qt5 COMPONENTS Core Network Test REQUIRED)
 
 # Include sub-projects.
-add_subdirectory ("MultiThreadingWorker")
 add_subdirectory ("ComputerVisionSystem")
 add_subdirectory ("RobotConnector")
 add_subdirectory ("RCAConnector")
 add_subdirectory ("SensorAdapter")
+add_subdirectory ("MathModule")
 add_subdirectory ("Executor")
 add_executable(${PROJECT_NAME} main.cpp)
 
@@ -42,5 +44,6 @@ target_link_libraries(${PROJECT_NAME}
         RCAConnector
         SensorAdapter
         Executor
-        MultiThreadingWorker
 )
+
+add_test(Name tst COMMAND ExecutorTesting)

@@ -1,68 +1,31 @@
 #include "RCAConnector.h"
+
 #include <chrono>
 
 RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
     QObject(parent),
-    _workerInOtherThread(),
-    _Thread(),
     _serverIP(std::move(serverIP)),
     _port(static_cast<quint16>(port)),
-    _socket(nullptr)
+    _socket(std::make_unique<QTcpSocket>(this))
 {
   qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
                                                                      QString::number(_port));
-  auto startChrono = std::chrono::steady_clock::now();
 
-  connect(this, &RCAConnector::signalToInitialise, &_workerInOtherThread,
-          &MultiThreadingWorker::slotToDoSomething);
+  connect(_socket.get(), &QTcpSocket::disconnected, this, &RCAConnector::slotToDisconnected);
+  connect(_socket.get(), &QTcpSocket::readyRead, this, &RCAConnector::slotToReadyRead);
 
-  this->moveToThread(&_Thread);
-
-  _workerInOtherThread.moveToThread(&_Thread);
-
-  _Thread.start();
-
-  emit signalToInitialise([this]()
-                          {
-                            this->doConnect();
-                          });
-
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Completed the creation: %1 ms").arg(durationChrono / 1000.0);
+  qDebug() << QString("Completed the creation.");
 }
 
-RCAConnector::~RCAConnector()
+bool RCAConnector::isConnected() const
 {
-  qInfo() << QString("Start destruction.");
-  auto startChrono = std::chrono::steady_clock::now();
-  emit signalToInitialise([this]()
-                          {
-                            this->deInitializeSocket();
-                          });
-  _Thread.wait();
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Complete the destruction: %1 ms").arg(durationChrono / 1000.0);
-}
-
-void RCAConnector::deInitializeSocket()
-{
-  qInfo() << QString("Start de-initialization.");
-  auto startChrono = std::chrono::steady_clock::now();
-
-  _socket = std::unique_ptr<QTcpSocket>(nullptr);
-  _Thread.quit();
-
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Complete de-initialization: %1 ms").arg(durationChrono / 1000.0);
+  return _socket->state() == QTcpSocket::SocketState::ConnectedState;
 }
 
 void RCAConnector::slotToReadyRead()
 {
   qInfo() << QString("Start reading from server.");
-  auto startChrono = std::chrono::steady_clock::now();
+  const auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream locData(_socket.get());
 
@@ -78,44 +41,54 @@ void RCAConnector::slotToReadyRead()
     locData.skipWhiteSpace();
   }
 
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
-  qDebug() << QString("Complete reading from server: %1 ms").arg(durationChrono / 1000.0);
+  ExectorCommand command;
 
-  emit signalNextCommand(token, coords);
+  if(token == "m")
+  {
+    command = ExectorCommand::SEND_TO_ROBOT;
+  }
+  else if(token == "f")
+  {
+    command = ExectorCommand::SEND_TO_SENSOR;
+  }
+  else
+  {
+    command = ExectorCommand::INVALID;
+  }
+
+  const auto endChrono = std::chrono::steady_clock::now();
+  const auto durationChrono = 
+    std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  qDebug() << QString("Complete reading from server: %1 ms").arg(durationChrono / 1000.0);
+  
+  emit signalNextCommand(command, coords);
 }
 
 void RCAConnector::slotToDisconnected()
 {
   qInfo() << QString("Start disconnection.");
-  if (_socket)
-  {
-    _socket->close();
-    doConnect();
-  }
+  emit signalNextCommand(ExectorCommand::SHUT_DOWN, QVector<double>());
+  _socket->close();
+  qDebug() << QString("Complete disconnection.");
 }
 
-void RCAConnector::doConnect()
+void RCAConnector::slotToConnect()
 {
   qInfo() << QString("Start connection.");
-  auto startChrono = std::chrono::steady_clock::now();
-
-  _socket = std::make_unique<QTcpSocket>(this);
-
-  connect(_socket.get(), &QTcpSocket::disconnected, this, &RCAConnector::slotToDisconnected);
-  connect(_socket.get(), &QTcpSocket::readyRead, this, &RCAConnector::slotToReadyRead);
+  const auto startChrono = std::chrono::steady_clock::now();
 
   _socket->connectToHost(_serverIP.c_str(), _port);
 
-  if (!_socket->waitForConnected(5000))
+  if (!_socket->waitForConnected(30000))
   {
     qCritical() << QString("RCAConnector Error: %1").arg(_socket->errorString());
-    emit signalNextCommand(QString("e"),QVector<double>());
+    emit signalSocketError();
   } else
   {
     _socket->write("f");
-    auto endChrono = std::chrono::steady_clock::now();
-    auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+    const auto endChrono = std::chrono::steady_clock::now();
+    const auto durationChrono = 
+      std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Complete connection: %1 ms").arg(durationChrono / 1000.0);
   }
 }
@@ -128,10 +101,10 @@ void RCAConnector::slotWriteToServer(QVector<double> data)
     dataString.push_back(QString("%1 ").arg(i));
   }
   qInfo() << QString("Start writing to server. Data: %1").arg(dataString);
-  auto startChrono = std::chrono::steady_clock::now();
+  const auto startChrono = std::chrono::steady_clock::now();
 
   QTextStream dataStream(_socket.get());
-  dataStream << "\"data\" : \"";
+  dataStream << R"("data" : ")";
   for (auto &i : data)
   {
     dataStream << i << ' ';
@@ -139,7 +112,8 @@ void RCAConnector::slotWriteToServer(QVector<double> data)
   dataStream << "\"|";
   dataStream.flush();
 
-  auto endChrono = std::chrono::steady_clock::now();
-  auto durationChrono = std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
+  const auto endChrono = std::chrono::steady_clock::now();
+  const auto durationChrono = 
+    std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
   qDebug() << QString("Complete writing to server: %1 ms").arg(durationChrono / 1000.0);
 }

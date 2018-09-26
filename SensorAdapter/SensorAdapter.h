@@ -1,31 +1,74 @@
 #ifndef SENSOR_ADAPTER_H
 #define SENSOR_ADAPTER_H
 
-#include <QObject>
-
 #include <memory>
-#include "../ComputerVisionSystem/CVS.h"
+#include <vector>
+#include <tuple>
 
+#include <QObject>
+#include <QString>
+
+#include "SensorController.h"
+#include "SensorConfig.h"
+#include "Executor/ExecutorCommandList.h"
+
+/**
+ * \brief Adapter for adding sensors.
+ */
 class SensorAdapter : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
 
-    SensorAdapter(QObject *parent = nullptr);
+  /**
+   * \brief                         Constructor of SensorAdapter
+   * \param[in] sensorsDescription  Vector with description for intitialising sensors.
+   * \param[in] parent              QObject paraent.
+   */
+  explicit SensorAdapter(
+    const std::vector<SensorConfig>& sensorsDescription,
+    QObject *parent = nullptr);
+
+  /**
+   * \brief         Function for shecking if sensor is active.
+   * \param[in] id  Id of sensor for checking.
+   * \return        True if sensor is active, false otherwise.
+   */
+  bool isOpen(size_t id);
+
+  /**
+   * \brief             Function for sending current robot position to sensor.
+   * \param[in] id      Id of sensor for sending.
+   * \param[in] params  Postion of robot.
+   */
+  void sendCurPosition(int id, QVector<double> params);
+
+protected:
+
+  /**
+   * \brief Vector with controllers of process controller.
+   */
+  std::vector<SensorController> _sensorsProcessControllers;
 
 signals:
 
-    void signalCubeFind(double j1, double j2, double j3, double j4, double j5, double j6);
+  /**
+   * \brief              Signal for sending data from sensor to executor.
+   * \param[in] command  Id of command.
+   * \param[in] params   Vector with data.
+   */
+  void signalGenerateCommand(ExectorCommand command, QVector<double> params);
 
-public slots:
+protected slots:
 
-    void slotToFindCube(double j1, double j2, double j3, double j4, double j5,
-        double j6);
-
-protected:
-    
-    timur::CVS _cvs;
-
+  /**
+   * \brief           Slot for sending data to executor.
+   * \param[in] id    Id of sensor.
+   * \param[in] data  Data from sensor.
+   */
+  void slotToGetNewParametrs(int id, QVector<double> data);
 };
+
+//todo rewite initialise with using config
 
 #endif // SENSOR_ADAPTER_H
