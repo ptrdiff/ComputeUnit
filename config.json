@@ -1,0 +1,19 @@
+{
+	"RCAConnector": {
+		"IPAdress": "localhost",
+		"Port": "9099"
+	},
+	"RobotConnector": {
+		"IPAdress": "localhost",
+		"Port": "59002"
+	},
+	"SensorAdapter":{
+		"SensorCount": 1,
+		"ProgramPath": "SensorAdapter/echoSensor/echoSensor.exe",
+		"ProgramFolder": "SensorAdapter",
+		"Blocks": [
+			6,
+			-1
+		]
+	}
+}
