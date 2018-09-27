@@ -33,7 +33,7 @@ add_subdirectory ("ComputerVisionSystem")
 add_subdirectory ("RobotConnector")
 add_subdirectory ("RCAConnector")
 add_subdirectory ("SensorAdapter")
-add_subdirectory ("MathModule")
+add_subdirectory ("MathClass")
 add_subdirectory ("Executor")
 add_executable(${PROJECT_NAME} main.cpp)
 
@@ -44,6 +44,7 @@ target_link_libraries(${PROJECT_NAME}
         RCAConnector
         SensorAdapter
         Executor
+        MathClass
 )
 
 add_test(Name tst COMMAND ExecutorTesting)
