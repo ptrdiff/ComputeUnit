@@ -51,7 +51,11 @@ void RCAConnector::slotToReadyRead()
   {
     command = ExectorCommand::SEND_TO_SENSOR;
   }
-  else
+  else if (token == "e") 
+  {
+      command = ExectorCommand::SHUT_DOWN;
+  }
+  else 
   {
     command = ExectorCommand::INVALID;
   }

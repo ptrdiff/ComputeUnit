@@ -13,9 +13,9 @@ while True:
     print('connected:', adress)
 
     while True:
-        conn.send(input().encode())
-
         data = conn.recv(1024).decode()
         if not data:
             break
         print(data)
+
+        conn.send(input().encode())

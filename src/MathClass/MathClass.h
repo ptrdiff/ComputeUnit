@@ -16,30 +16,34 @@ class MathModule
 public:
 
     /**
-     * \brief             Function for transformating params sended to RCA.
-     * \param[in] params  Params for transforamtion.
-     * \return            Transformed params
+     * \brief                   Function for transformating params sended to RCA.
+     * \param[in] params        Params for transforamtion.
+     * \return                  Transformed params
      */
     QVector<double> sendToRCATransformation(QVector<double> params);
 
     /**
-     * \brief             Function for transformating params sended to robot.
-     * \param[in] params  Params for transforamtion.
-     * \return            Transformed params
+     * \brief                   Function for transformating params sended to robot.
+     * \param[in] params        Params for transforamtion.
+     * \param[in] lastSendPoint Previous command send to robot.
+     * \return                  Vector of transformed params for commands for robot.
      */
     QVector<double> sendToRobotTransformation(QVector<double> params);
 
     /**
-     * \brief             Function for transformating params recived from robot and sended to 
-     *                    sensor.
-     * \param[in] params  Params for transforamtion.
-     * \return            Transformed params
+     * \brief                   Function for transformating params recived from robot and sended to 
+     *                          sensor.
+     * \param[in] params        Params for transforamtion.
+     * \return                  Transformed params.
      */
     QVector<double> sendToSensorTransformation(QVector<double> params);
 
     /**
-   * \brief             Function for transformating params recived from sencor and sended to RCA.
-   */
+     * \brief                   Function for transformating params recived from sencor and sended to RCA.
+     * \param[in] jointCorners  
+     * \param[in] objects       
+     * \return                  
+     */
     QVector<std::array<double, 7>>  sendAfterSensorTransformation(
         std::array<double, 6> jointCorners, std::vector<std::array<double, 7>> objects);
 

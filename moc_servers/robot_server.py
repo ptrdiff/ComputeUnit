@@ -24,13 +24,15 @@ while True:
             if ls[0] == '1':
                 if len(ls) < 9:
                     break
+                for i in range(1, 7):
+                    ls[i] = ls[i][:-3]
                 conn.send((f" {ls[1]}.000 {ls[2]}.000 {ls[3]}.000 {ls[4]}.000 {ls[5]}.000 \
                             {ls[6]}.000").encode())
                 ls = ls[9:]
             elif ls[0] == '2':
                 if len(ls) < 7:
                     break
-                #conn.send(b'Settings applied')
+                #conn.send(b'YES')
                 ls = ls[7:]
             else:
                 ls = []
