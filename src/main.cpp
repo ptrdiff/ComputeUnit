@@ -15,7 +15,7 @@
 #include "RobotConnector/RobotConnector.h"
 #include "SensorAdapter/SensorAdapter.h"
 #include "SensorAdapter/SensorConfig.h"
-#include "MathModule/MathModule.h"
+#include "MathClass/MathClass.h"
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {

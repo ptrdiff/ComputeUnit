@@ -10,7 +10,7 @@
 #include "RobotConnector/RobotConnector.h"
 #include "RCAConnector/RCAConnector.h"
 #include "SensorAdapter/SensorAdapter.h"
-#include "MathModule/MathModule.h"
+#include "MathClass/MathClass.h"
 #include "ExecutorCommandList.h"
 
 /**
