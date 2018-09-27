@@ -1,12 +1,12 @@
 {
 	"RCAConnector": {
-		"IPAdress": "localhost",
+		"IPAdress": "192.168.0.107",
 		"Port": "9099"
 	},
-	"RobotConnector": {
-		"IPAdress": "localhost",
-		"Port": "59002"
-	},
+    "RobotConnector": {
+        "IPAdress": "192.168.0.107",
+        "Port": "59002"
+    },
 	"SensorAdapter":{
 		"SensorCount": 1,
 		"ProgramPath": "SensorAdapter/echoSensor/echoSensor.exe",
