@@ -12,6 +12,7 @@
 #include "SensorAdapter/SensorAdapter.h"
 #include "MathClass/MathClass.h"
 #include "ExecutorCommandList.h"
+#include "ComputerVisionSystem/CVS.h"
 
 /**
  * \brief Executor for processing elememtary commands.
@@ -43,11 +44,13 @@ public:
      * \param[in] controlCenterConnector  Instance of RCAConnector.
      * \param[in] robotConnector          Instance of RobotConnector.
      * \param[in] sensorAdapter           Insatnce of SensorAdapter.
+     * \param[in] cvs                     Instance of CVS.
      * \param[in] mathModule              Instance of MathModule.
      * \param[in] parent                  Previous qt object.
      */
     Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector, 
-      SensorAdapter& sensorAdapter, MathModule& mathModule, QObject *parent = nullptr);
+      SensorAdapter& sensorAdapter, timur::CVS& cvs, MathModule& mathModule, 
+        QObject *parent = nullptr);
 
 signals:
 
@@ -115,6 +118,11 @@ private:
     SensorAdapter&                                                         _sensorAdapter;
 
     /**
+     * \brief Lib for computer vision.
+     */
+    timur::CVS&                                                            _cvs;
+
+    /**
      * \brief Math for params transformation.
      */
     MathModule&                                                            _mathModule;
@@ -154,6 +162,12 @@ private:
      * \param[in] params First number is id of sensor, other is data from this sensor.
      */
     void askSensor(QVector<double> params);
+
+    /**
+     * \brief               Function for scanning scene and returning object's positions.
+     * \param[in] params    Just for tenplate.
+     */
+    void getComputerVisionSystemData(QVector<double> params);
 };
 
 //todo complit doxygen

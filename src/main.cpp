@@ -16,6 +16,7 @@
 #include "SensorAdapter/SensorAdapter.h"
 #include "SensorAdapter/SensorConfig.h"
 #include "MathClass/MathClass.h"
+#include "ComputerVisionSystem/CVS.h"
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -72,6 +73,7 @@ int main(int argc, char *argv[])
         QMap RCAConnectorConfig = config["RCAConnector"].toMap();
         QMap RobotConnectorConfig = config["RobotConnector"].toMap();
         QMap SensorAdapterConfig = config["SensorAdapter"].toMap();
+        QMap ComputerVisionSystem = config["ComputerVisionSystem"].toMap();
         RCAConnector rcaConnector(RCAConnectorConfig["IPAdress"].toString().toStdString(),
                                   RCAConnectorConfig["Port"].toInt());
         RobotConnector robotConnector(RobotConnectorConfig["IPAdress"].toString().toStdString(),
@@ -86,8 +88,13 @@ int main(int argc, char *argv[])
                     SensorAdapterConfig["Blocks"].toList()[1].toInt()));
         }
         SensorAdapter sensorAdapter(sensorDescriprion);
+        timur::CVS cvs(ComputerVisionSystem["arucoSqureDimension"].toFloat(),
+            ComputerVisionSystem["cointOfMarkers"].toInt(),
+            ComputerVisionSystem["markerSize"].toInt(),
+            ComputerVisionSystem["cameraIndex"].toInt(),
+            ComputerVisionSystem["calibrationFileName"].toString().toStdString());
         MathModule mathModule;
-        Executor executor(rcaConnector, robotConnector, sensorAdapter, mathModule);
+        Executor executor(rcaConnector, robotConnector, sensorAdapter, cvs, mathModule);
 
         return a.exec();
     }
@@ -98,7 +105,7 @@ int main(int argc, char *argv[])
   catch (std::exception &exp)
   {
     std::cout << exp.what() << '\n';
-    throw exp;
+    //throw exp;
   }
 
 }

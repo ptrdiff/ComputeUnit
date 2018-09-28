@@ -7,13 +7,20 @@
         "IPAdress": "192.168.0.107",
         "Port": "59002"
     },
-	"SensorAdapter":{
-		"SensorCount": 1,
-		"ProgramPath": "SensorAdapter/echoSensor/echoSensor.exe",
-		"ProgramFolder": "SensorAdapter",
-		"Blocks": [
-			6,
-			-1
-		]
-	}
+    "SensorAdapter": {
+        "SensorCount": 0,
+        "ProgramPath": "SensorAdapter/echoSensor/echoSensor.exe",
+        "ProgramFolder": "SensorAdapter",
+        "Blocks": [
+            6,
+            -1
+        ]
+    },
+    "ComputerVisionSystem": {
+        "arucoSqureDimension": "0.",
+        "cointOfMarkers": "0",
+        "markerSize": "0",
+        "cameraIndex": "0",
+        "calibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
+    }
 }
