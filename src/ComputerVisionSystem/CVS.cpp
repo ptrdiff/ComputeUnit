@@ -8,19 +8,18 @@
 
 timur::CVS::CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
                 int cameraIndex,
-                std::string calibrationFileName)
+                const std::string& calibrationFileName)
         :_arucoMarkers(arucoSqureDimension,cointOfMarkers,markerSize)
         ,_vid(cameraIndex)
         ,_camera(calibrationFileName)
+{}
+
+std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
 {
     if (!_vid.isOpened())
     {
         throw std::exception();
     }
-}
-
-std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
-{
     cv::Mat frame;
     std::vector<cv::Vec3d> rotationVectors, translationVectors;
     std::vector<int> markerIds;
@@ -49,4 +48,9 @@ std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
         }
     }
     return result;
+}
+
+bool timur::CVS::isCameraOpened()
+{
+    return _vid.isOpened();
 }

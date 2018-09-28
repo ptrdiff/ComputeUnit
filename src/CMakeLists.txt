@@ -45,6 +45,7 @@ target_link_libraries(${PROJECT_NAME}
         SensorAdapter
         Executor
         MathClass
+        ComputerVisionSystem
 )
 
 add_test(Name tst COMMAND ExecutorTesting)

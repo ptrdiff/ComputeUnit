@@ -25,9 +25,11 @@ namespace timur
     public:
         CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
             int cameraIndex,
-            std::string calibrationFileName);
+            const std::string& calibrationFileName);
 
         std::vector<std::array<double, 7>> getMarkerPose();
+
+        bool isCameraOpened();
     };
 }
 

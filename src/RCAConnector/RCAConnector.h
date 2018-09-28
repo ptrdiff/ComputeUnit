@@ -13,7 +13,8 @@ class RCAConnector : public QObject
   Q_OBJECT
 public:
 
-  explicit RCAConnector(std::string serverIP, int port, QObject *parent = nullptr);
+  explicit RCAConnector(std::string serverIP, int port, std::string welcomeCommand,
+      QObject *parent = nullptr);
 
   bool isConnected() const;
 
@@ -36,6 +37,8 @@ protected:
   std::string _serverIP;
 
   quint16 _port;
+
+  std::string _welcomeCommand;
 
   std::unique_ptr<QTcpSocket> _socket;
 

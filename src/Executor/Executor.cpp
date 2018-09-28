@@ -6,19 +6,20 @@
 #include <QCoreApplication>
 
 Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector,
-  SensorAdapter &sensorAdapter, MathModule& mathModule, QObject *parent) try :
+  SensorAdapter &sensorAdapter, timur::CVS& cvs, MathModule& mathModule, QObject *parent) try :
   QObject(parent),
   _wasFirstPoint(false),
   _lastSendPoint({ 0,0,0,0,-90,0 }),
   _controlCenterConnector(controlCenterConnector),
   _robotConnector(robotConnector),
   _sensorAdapter(sensorAdapter),
+  _cvs(cvs),
   _mathModule(mathModule),
   _commandTable({
                  {ExectorCommand::SHUT_DOWN,        {&Executor::shutDownComputeUnit,           -1}},
                  {ExectorCommand::SEND_TO_ROBOT,    {&Executor::sendRobotMoveCommand,           7}},
                  {ExectorCommand::SEND_TO_RCA,      {&Executor::sendControlCenterRobotPosition, 6}},
-                 {ExectorCommand::SEND_TO_SENSOR,   {&Executor::askSensor,                     -1}},
+                 {ExectorCommand::SEND_TO_SENSOR,   {&Executor::getComputerVisionSystemData,   -1}},
                  {ExectorCommand::RECV_FROM_SENSOR, {&Executor::newSensorData,                 -1}}
     })
 {
@@ -248,6 +249,52 @@ void Executor::askSensor(QVector<double> params)
 
   qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
     std::chrono::steady_clock::now() - start).count() / 1000.;
+}
+
+void Executor::getComputerVisionSystemData(QVector<double> params)
+{
+    QString dataString;
+    for (auto &i : params)
+    {
+        dataString.push_back(QString("%1 ").arg(i));
+    }
+    qInfo() << QString("Start using CVS. Parameters: %1").arg(dataString);
+    const auto start = std::chrono::steady_clock::now();
+
+    const auto objectCameraPosition = _cvs.getMarkerPose();
+
+    std::array<double, 6> lastSendPoint;
+
+    for(int i=0;i<6;++i)
+    {
+        lastSendPoint[i] = _lastSendPoint[i];
+    }
+
+    try {
+        const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastSendPoint, objectCameraPosition);
+
+        for(auto &object: objectPositions)
+        {
+            QVector<double> command(7);
+            for (int i = 0; i < 7; ++i)
+            {
+                command[i] = object[i];
+            }
+          emit sendControlCenterRobotPosition(command);
+        }
+        
+        if(objectPositions.empty())
+        {
+          emit sendControlCenterRobotPosition(QVector<double>());
+        }
+    }
+    catch(std::exception& exp)
+    {
+        qCritical() << QString("Can't access camera");
+    }
+
+    qDebug() << "Finish using CVS: " << std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::steady_clock::now() - start).count() / 1000.;
 }
 
 //todo update system to use all functions from fanuc server

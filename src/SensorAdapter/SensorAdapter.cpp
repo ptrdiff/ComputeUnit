@@ -38,7 +38,7 @@ bool SensorAdapter::isOpen(size_t id)
 
   bool result = false;
 
-  if (id >= 0 && id < _sensorsProcessControllers.size())
+  if (id < _sensorsProcessControllers.size())
     result = _sensorsProcessControllers[id].isOpen();
 
   const auto endChrono = std::chrono::steady_clock::now();

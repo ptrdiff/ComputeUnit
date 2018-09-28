@@ -14,7 +14,8 @@ class RobotConnector : public QObject
 
  public:
 
-  RobotConnector(std::string serverIP, int port, QObject *parent = nullptr);
+  RobotConnector(std::string serverIP, int port, std::string welcomeCommand, int inputBlock,
+      QObject *parent = nullptr);
 
   bool isConnected() const;
 
@@ -36,6 +37,10 @@ class RobotConnector : public QObject
   std::string _serverIP;
 
   quint16 _port;
+
+  std::string _welcomeCommand;
+
+  int _inputBlock;
 
   std::unique_ptr<QTcpSocket> _socket;
 };

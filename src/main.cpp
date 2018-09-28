@@ -16,6 +16,7 @@
 #include "SensorAdapter/SensorAdapter.h"
 #include "SensorAdapter/SensorConfig.h"
 #include "MathClass/MathClass.h"
+#include "ComputerVisionSystem/CVS.h"
 
 void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
@@ -72,10 +73,14 @@ int main(int argc, char *argv[])
         QMap RCAConnectorConfig = config["RCAConnector"].toMap();
         QMap RobotConnectorConfig = config["RobotConnector"].toMap();
         QMap SensorAdapterConfig = config["SensorAdapter"].toMap();
+        QMap ComputerVisionSystem = config["ComputerVisionSystem"].toMap();
         RCAConnector rcaConnector(RCAConnectorConfig["IPAdress"].toString().toStdString(),
-                                  RCAConnectorConfig["Port"].toInt());
+                                  RCAConnectorConfig["Port"].toInt(), 
+                                  RCAConnectorConfig["WelcomeCommand"].toString().toStdString());
         RobotConnector robotConnector(RobotConnectorConfig["IPAdress"].toString().toStdString(),
-                                      RobotConnectorConfig["Port"].toInt());
+                                      RobotConnectorConfig["Port"].toInt(),
+                                      RobotConnectorConfig["WelcomeCommand"].toString().toStdString(),
+                                      RobotConnectorConfig["DataBlock"].toInt());
         std::vector<SensorConfig> sensorDescriprion;
         for (int i = 0; i < SensorAdapterConfig["SensorCount"].toInt(); ++i)
         {
@@ -86,8 +91,17 @@ int main(int argc, char *argv[])
                     SensorAdapterConfig["Blocks"].toList()[1].toInt()));
         }
         SensorAdapter sensorAdapter(sensorDescriprion);
+        timur::CVS cvs(ComputerVisionSystem["ArucoSqureDimension"].toFloat(),
+            ComputerVisionSystem["CountOfMarkers"].toInt(),
+            ComputerVisionSystem["MarkerSize"].toInt(),
+            ComputerVisionSystem["CameraIndex"].toInt(),
+            ComputerVisionSystem["CalibrationFileName"].toString().toStdString());
+        if(!cvs.isCameraOpened())
+        {
+            qCritical() << QString("Can't access camera");
+        }
         MathModule mathModule;
-        Executor executor(rcaConnector, robotConnector, sensorAdapter, mathModule);
+        Executor executor(rcaConnector, robotConnector, sensorAdapter, cvs, mathModule);
 
         return a.exec();
     }
@@ -95,10 +109,10 @@ int main(int argc, char *argv[])
     return -1;
     
   }
-  catch (std::exception &exp)
+  catch (std::exception& exp)
   {
     std::cout << exp.what() << '\n';
-    throw exp;
+    //throw exp;
   }
 
 }
