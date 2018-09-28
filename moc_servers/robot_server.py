@@ -26,10 +26,10 @@ while True:
                     break
                 for i in range(1, 7):
                     ls[i] = ls[i][:-3]
-                conn.send((f" {ls[1]}.000 {ls[2]}.000 {ls[3]}.000 {ls[4]}.000 {ls[5]}.000 \
-                            {ls[6]}.000").encode())
-                print('send:', f" {ls[1]}.000 {ls[2]}.000 {ls[3]}.000 {ls[4]}.000 {ls[5]}.000 \
-                            {ls[6]}.000")
+                conn.send((f" {ls[1]}.000 {ls[2]}.000 {ls[3]}.000 {ls[4]}.000 {ls[5]}.000 "\
+                            f"{ls[6]}.000").encode())
+                print('send:', f" {ls[1]}.000 {ls[2]}.000 {ls[3]}.000 {ls[4]}.000 {ls[5]}.000 "\
+                            f"{ls[6]}.000")
                 if len(ls[8]) == 1:
                     ls = ls[9:]
                 else:
