@@ -75,9 +75,11 @@ int main(int argc, char *argv[])
         QMap SensorAdapterConfig = config["SensorAdapter"].toMap();
         QMap ComputerVisionSystem = config["ComputerVisionSystem"].toMap();
         RCAConnector rcaConnector(RCAConnectorConfig["IPAdress"].toString().toStdString(),
-                                  RCAConnectorConfig["Port"].toInt());
+                                  RCAConnectorConfig["Port"].toInt(), 
+                                  RCAConnectorConfig["welcomeCommand"].toString().toStdString());
         RobotConnector robotConnector(RobotConnectorConfig["IPAdress"].toString().toStdString(),
-                                      RobotConnectorConfig["Port"].toInt());
+                                      RobotConnectorConfig["Port"].toInt(),
+                                      RobotConnectorConfig["welcomeCommand"].toString().toStdString());
         std::vector<SensorConfig> sensorDescriprion;
         for (int i = 0; i < SensorAdapterConfig["SensorCount"].toInt(); ++i)
         {

@@ -13,7 +13,8 @@ class RCAConnector : public QObject
   Q_OBJECT
 public:
 
-  explicit RCAConnector(std::string serverIP, int port, QObject *parent = nullptr);
+  explicit RCAConnector(std::string serverIP, int port, std::string welcomeCommand,
+      QObject *parent = nullptr);
 
   bool isConnected() const;
 
@@ -32,6 +33,8 @@ public slots:
   void slotWriteToServer(QVector<double>);
 
 protected:
+
+    std::string _welcomeCommand;
 
   std::string _serverIP;
 

@@ -3,10 +3,12 @@
 #include <cmath>
 #include <chrono>
 
-RobotConnector::RobotConnector(std::string serverIP, int port, QObject *parent) :
+RobotConnector::RobotConnector(std::string serverIP, int port, std::string welcomeCommand,
+    QObject *parent) :
     QObject(parent),
     _serverIP(std::move(serverIP)),
     _port(static_cast<quint16>(port)),
+    _welcomeCommand(welcomeCommand),
     _socket(std::make_unique<QTcpSocket>(this))
 {
     qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
@@ -32,7 +34,7 @@ void RobotConnector::slotToConnect()
 
     if (_socket->waitForConnected(30000))
     {
-        _socket->write("2 0 3 7 4 1 0");
+        _socket->write(_welcomeCommand.c_str());
 
         const auto endChrono = std::chrono::steady_clock::now();
         const auto durationChrono =
@@ -104,6 +106,9 @@ void RobotConnector::slotToReadyRead()
     const auto durationChrono =
         std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Completed reading from server: %1 ms").arg(durationChrono / 1000.0);
-
-    emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
+    
+    if (!coords.empty()) 
+    {
+        emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
+    }
 }

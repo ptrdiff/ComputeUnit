@@ -1,11 +1,14 @@
 #include "RCAConnector.h"
 
 #include <chrono>
+#include <iostream>
 
-RCAConnector::RCAConnector(std::string serverIP, int port, QObject *parent) :
+RCAConnector::RCAConnector(std::string serverIP, int port, std::string welcomeCommand,
+    QObject *parent) :
     QObject(parent),
     _serverIP(std::move(serverIP)),
     _port(static_cast<quint16>(port)),
+    _welcomeCommand(welcomeCommand),
     _socket(std::make_unique<QTcpSocket>(this))
 {
   qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
@@ -89,7 +92,8 @@ void RCAConnector::slotToConnect()
     emit signalSocketError();
   } else
   {
-    _socket->write("f");
+      std::cout << _welcomeCommand << std::endl;
+    _socket->write(_welcomeCommand.c_str());
     const auto endChrono = std::chrono::steady_clock::now();
     const auto durationChrono = 
       std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();

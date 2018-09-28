@@ -14,7 +14,8 @@ class RobotConnector : public QObject
 
  public:
 
-  RobotConnector(std::string serverIP, int port, QObject *parent = nullptr);
+  RobotConnector(std::string serverIP, int port, std::string welcomeCommand, 
+      QObject *parent = nullptr);
 
   bool isConnected() const;
 
@@ -32,6 +33,8 @@ class RobotConnector : public QObject
   void slotWriteToServer(QVector<double>);
 
  protected:
+
+     std::string _welcomeCommand;
 
   std::string _serverIP;
 
