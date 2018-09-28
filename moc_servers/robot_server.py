@@ -32,7 +32,7 @@ while True:
             elif ls[0] == '2':
                 if len(ls) < 7:
                     break
-                #conn.send(b'YES')
+                conn.send(b'YES')
                 ls = ls[7:]
             else:
                 ls = []
