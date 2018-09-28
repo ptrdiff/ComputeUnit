@@ -13,14 +13,15 @@ timur::CVS::CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
         ,_vid(cameraIndex)
         ,_camera(calibrationFileName)
 {
-    if (!_vid.isOpened())
-    {
-        throw std::exception();
-    }
+    _isCorrect = _vid.isOpened();
 }
 
 std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
 {
+    if (!_isCorrect)
+    {
+        throw std::exception();
+    }
     cv::Mat frame;
     std::vector<cv::Vec3d> rotationVectors, translationVectors;
     std::vector<int> markerIds;
@@ -49,4 +50,9 @@ std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
         }
     }
     return result;
+}
+
+bool timur::CVS::isCorrect()
+{
+    return _isCorrect;
 }

@@ -270,18 +270,24 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
         lastSendPoint[i] = _lastSendPoint[i];
     }
 
-    const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastSendPoint, objectCameraPosition);
+    try {
+        const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastSendPoint, objectCameraPosition);
 
-    std::array<double, 7> object;
+        std::array<double, 7> object;
 
-    foreach(object, objectPositions)
-    {
-        QVector<double> command(7);
-        for(int i=0;i<7;++i)
+        foreach(object, objectPositions)
         {
-            command[i] = object[i];
-            emit sendControlCenterRobotPosition(command);
+            QVector<double> command(7);
+            for (int i = 0; i < 7; ++i)
+            {
+                command[i] = object[i];
+                emit sendControlCenterRobotPosition(command);
+            }
         }
+    }
+    catch(std::exception exp)
+    {
+        qCritical() << QString("Can't access camera");
     }
 
     qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(

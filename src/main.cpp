@@ -93,6 +93,10 @@ int main(int argc, char *argv[])
             ComputerVisionSystem["markerSize"].toInt(),
             ComputerVisionSystem["cameraIndex"].toInt(),
             ComputerVisionSystem["calibrationFileName"].toString().toStdString());
+        if(!cvs.isCorrect())
+        {
+            qCritical() << QString("Can't access camera");
+        }
         MathModule mathModule;
         Executor executor(rcaConnector, robotConnector, sensorAdapter, cvs, mathModule);
 
