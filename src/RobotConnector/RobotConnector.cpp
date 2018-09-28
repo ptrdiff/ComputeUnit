@@ -3,12 +3,13 @@
 #include <cmath>
 #include <chrono>
 
-RobotConnector::RobotConnector(std::string serverIP, int port, std::string welcomeCommand,
-    QObject *parent) :
+RobotConnector::RobotConnector(std::string serverIP, int port, std::string welcomeCommand, 
+    int inputBlock, QObject *parent) :
     QObject(parent),
     _serverIP(std::move(serverIP)),
     _port(static_cast<quint16>(port)),
-    _welcomeCommand(welcomeCommand),
+    _welcomeCommand(std::move(welcomeCommand)),
+    _inputBlock(inputBlock),
     _socket(std::make_unique<QTcpSocket>(this))
 {
     qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
@@ -98,17 +99,22 @@ void RobotConnector::slotToReadyRead()
         if (isDouble)
         {
             coords.push_back(coord);
+            if(coords.size() >= _inputBlock)
+            {
+                emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
+                coords.clear();
+            }
         }
         locData.skipWhiteSpace();
+    }
+
+    if (!coords.empty())
+    {
+        emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
     }
 
     const auto endChrono = std::chrono::steady_clock::now();
     const auto durationChrono =
         std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
     qDebug() << QString("Completed reading from server: %1 ms").arg(durationChrono / 1000.0);
-    
-    if (!coords.empty()) 
-    {
-        emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
-    }
 }

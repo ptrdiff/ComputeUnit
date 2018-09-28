@@ -79,7 +79,8 @@ int main(int argc, char *argv[])
                                   RCAConnectorConfig["welcomeCommand"].toString().toStdString());
         RobotConnector robotConnector(RobotConnectorConfig["IPAdress"].toString().toStdString(),
                                       RobotConnectorConfig["Port"].toInt(),
-                                      RobotConnectorConfig["welcomeCommand"].toString().toStdString());
+                                      RobotConnectorConfig["welcomeCommand"].toString().toStdString(),
+                                      RobotConnectorConfig["dataBlock"].toInt());
         std::vector<SensorConfig> sensorDescriprion;
         for (int i = 0; i < SensorAdapterConfig["SensorCount"].toInt(); ++i)
         {
