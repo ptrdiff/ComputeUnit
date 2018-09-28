@@ -285,7 +285,7 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
             }
         }
     }
-    catch(std::exception exp)
+    catch(std::exception& exp)
     {
         qCritical() << QString("Can't access camera");
     }

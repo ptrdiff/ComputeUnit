@@ -34,11 +34,11 @@ public slots:
 
 protected:
 
-    std::string _welcomeCommand;
-
   std::string _serverIP;
 
   quint16 _port;
+
+  std::string _welcomeCommand;
 
   std::unique_ptr<QTcpSocket> _socket;
 

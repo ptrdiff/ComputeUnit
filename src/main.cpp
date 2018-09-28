@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     return -1;
     
   }
-  catch (std::exception &exp)
+  catch (std::exception& exp)
   {
     std::cout << exp.what() << '\n';
     //throw exp;
