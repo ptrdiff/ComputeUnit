@@ -165,7 +165,7 @@ private:
 
     /**
      * \brief               Function for scanning scene and returning object's positions.
-     * \param[in] params    Just for tenplate.
+     * \param[in] params    Just for template.
      */
     void getComputerVisionSystemData(QVector<double> params);
 };

@@ -22,16 +22,14 @@ namespace timur
         cv::VideoCapture _vid;
         timur::CamCalibWi _camera;
 
-        bool _isCorrect;
-
     public:
         CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
             int cameraIndex,
-            std::string calibrationFileName);
+            const std::string& calibrationFileName);
 
         std::vector<std::array<double, 7>> getMarkerPose();
 
-        bool isCorrect();
+        bool isCameraOpened();
     };
 }
 

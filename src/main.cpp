@@ -76,11 +76,11 @@ int main(int argc, char *argv[])
         QMap ComputerVisionSystem = config["ComputerVisionSystem"].toMap();
         RCAConnector rcaConnector(RCAConnectorConfig["IPAdress"].toString().toStdString(),
                                   RCAConnectorConfig["Port"].toInt(), 
-                                  RCAConnectorConfig["welcomeCommand"].toString().toStdString());
+                                  RCAConnectorConfig["WelcomeCommand"].toString().toStdString());
         RobotConnector robotConnector(RobotConnectorConfig["IPAdress"].toString().toStdString(),
                                       RobotConnectorConfig["Port"].toInt(),
-                                      RobotConnectorConfig["welcomeCommand"].toString().toStdString(),
-                                      RobotConnectorConfig["dataBlock"].toInt());
+                                      RobotConnectorConfig["WelcomeCommand"].toString().toStdString(),
+                                      RobotConnectorConfig["DataBlock"].toInt());
         std::vector<SensorConfig> sensorDescriprion;
         for (int i = 0; i < SensorAdapterConfig["SensorCount"].toInt(); ++i)
         {
@@ -91,12 +91,12 @@ int main(int argc, char *argv[])
                     SensorAdapterConfig["Blocks"].toList()[1].toInt()));
         }
         SensorAdapter sensorAdapter(sensorDescriprion);
-        timur::CVS cvs(ComputerVisionSystem["arucoSqureDimension"].toFloat(),
-            ComputerVisionSystem["cointOfMarkers"].toInt(),
-            ComputerVisionSystem["markerSize"].toInt(),
-            ComputerVisionSystem["cameraIndex"].toInt(),
-            ComputerVisionSystem["calibrationFileName"].toString().toStdString());
-        if(!cvs.isCorrect())
+        timur::CVS cvs(ComputerVisionSystem["ArucoSqureDimension"].toFloat(),
+            ComputerVisionSystem["CountOfMarkers"].toInt(),
+            ComputerVisionSystem["MarkerSize"].toInt(),
+            ComputerVisionSystem["CameraIndex"].toInt(),
+            ComputerVisionSystem["CalibrationFileName"].toString().toStdString());
+        if(!cvs.isCameraOpened())
         {
             qCritical() << QString("Can't access camera");
         }
