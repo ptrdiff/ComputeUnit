@@ -20,10 +20,10 @@
         ]
     },
     "ComputerVisionSystem": {
-        "arucoSqureDimension": "0.",
-        "cointOfMarkers": "0",
-        "markerSize": "0",
-        "cameraIndex": "0",
+        "arucoSqureDimension": "0.64",
+        "cointOfMarkers": "9",
+        "markerSize": "3",
+        "cameraIndex": "1",
         "calibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
     }
 }

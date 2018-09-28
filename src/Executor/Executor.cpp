@@ -19,7 +19,7 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
                  {ExectorCommand::SHUT_DOWN,        {&Executor::shutDownComputeUnit,           -1}},
                  {ExectorCommand::SEND_TO_ROBOT,    {&Executor::sendRobotMoveCommand,           7}},
                  {ExectorCommand::SEND_TO_RCA,      {&Executor::sendControlCenterRobotPosition, 6}},
-                 {ExectorCommand::SEND_TO_SENSOR,   {&Executor::askSensor,                     -1}},
+                 {ExectorCommand::SEND_TO_SENSOR,   {&Executor::getComputerVisionSystemData,   -1}},
                  {ExectorCommand::RECV_FROM_SENSOR, {&Executor::newSensorData,                 -1}}
     })
 {
@@ -273,16 +273,19 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     try {
         const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastSendPoint, objectCameraPosition);
 
-        std::array<double, 7> object;
-
-        foreach(object, objectPositions)
+        for(auto &object: objectPositions)
         {
             QVector<double> command(7);
             for (int i = 0; i < 7; ++i)
             {
                 command[i] = object[i];
-                emit sendControlCenterRobotPosition(command);
             }
+          emit sendControlCenterRobotPosition(command);
+        }
+        
+        if(objectPositions.empty())
+        {
+          emit sendControlCenterRobotPosition(QVector<double>());
         }
     }
     catch(std::exception& exp)
@@ -290,7 +293,7 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
         qCritical() << QString("Can't access camera");
     }
 
-    qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
+    qDebug() << "Finish using CVS: " << std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now() - start).count() / 1000.;
 }
 
