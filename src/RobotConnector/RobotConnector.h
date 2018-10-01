@@ -19,6 +19,8 @@ class RobotConnector : public QObject
 
   bool isConnected() const;
 
+  bool isNotMoving() const;
+
  signals:
 
   void signalSocketError();
@@ -41,6 +43,10 @@ class RobotConnector : public QObject
   std::string _welcomeCommand;
 
   int _inputBlock;
+
+  size_t _sendedCommands;
+
+  size_t _recievedCommands;
 
   std::unique_ptr<QTcpSocket> _socket;
 };

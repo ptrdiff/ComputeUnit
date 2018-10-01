@@ -168,6 +168,8 @@ void Executor::sendControlCenterRobotPosition(QVector<double> params)
 
   params = _mathModule.sendToRCATransformation(params);
 
+  _lastReceivedPoint = params;
+
   emit signalWriteToControlCenter(std::move(params));
 
   const auto endChrono = std::chrono::steady_clock::now();
@@ -261,36 +263,46 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     qInfo() << QString("Start using CVS. Parameters: %1").arg(dataString);
     const auto start = std::chrono::steady_clock::now();
 
-    const auto objectCameraPosition = _cvs.getMarkerPose();
-
-    std::array<double, 6> lastSendPoint;
-
-    for(int i=0;i<6;++i)
+    bool wasSend = false;
+    if (_robotConnector.isNotMoving())
     {
-        lastSendPoint[i] = _lastSendPoint[i];
-    }
+        const auto objectCameraPosition = _cvs.getMarkerPose();
 
-    try {
-        const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastSendPoint, objectCameraPosition);
+        std::array<double, 6> lastPoint;
 
-        for(auto &object: objectPositions)
+        for (int i = 0; i < 6; ++i)
         {
-            QVector<double> command(7);
-            for (int i = 0; i < 7; ++i)
+            lastPoint[i] = _lastReceivedPoint[i];
+        }
+
+        try {
+            const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastPoint,
+                objectCameraPosition);
+
+            for (auto &object : objectPositions)
             {
-                command[i] = object[i];
+                QVector<double> command(7);
+                for (int i = 0; i < 7; ++i)
+                {
+                    command[i] = object[i];
+                }
+                emit sendControlCenterRobotPosition(command);
+                wasSend = true;
             }
-          emit sendControlCenterRobotPosition(command);
         }
-        
-        if(objectPositions.empty())
+        catch (std::exception& exp)
         {
-          emit sendControlCenterRobotPosition(QVector<double>());
+            qCritical() << QString("Can't access camera");
         }
     }
-    catch(std::exception& exp)
+    else
     {
-        qCritical() << QString("Can't access camera");
+        qCritical() << QString("Can't use CVS during moving");
+    }
+
+    if (!wasSend) 
+    {
+        emit sendControlCenterRobotPosition(QVector<double>());
     }
 
     qDebug() << "Finish using CVS: " << std::chrono::duration_cast<std::chrono::microseconds>(
