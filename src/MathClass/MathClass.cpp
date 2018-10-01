@@ -7,12 +7,17 @@
 #include "CardModel/CardModel.h"
 
 
-MathModule::MathModule(bool forCard):_isCard(forCard)
+MathModule::MathModule(bool forCard):
+_isCard(forCard),
+_wasFirstPointSend(false),
+_lastSendPoint({ 985, 0, 940, -180, 0, 0 }),
+_lastReceivedPoint({ 0, 0, 0, 0, -90, 0 })
 {
 }
 
 QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
 {
+    _lastReceivedPoint = params;
     return params;
 }
 
@@ -20,20 +25,36 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
 {
     if(!_isCard)
     {
+        double speed = DEFAULT_SPEED;
+
+        if (_wasFirstPointSend)
+        {
+            speed = 0.;
+
+            for (size_t i = 0; i < 6; ++i)
+            {
+                speed += abs(_lastSendPoint.at(i) - params.at(i));
+            }
+
+            speed = std::min(speed / TIME_FOR_RESPONSE, MAX_SPEED);
+        }
+
+        _wasFirstPointSend = true;
+        for (size_t i = 0; i < 6; ++i)
+        {
+            _lastSendPoint[i] = params.at(i);
+        }
+
+        params.push_back(speed);
+        std::swap(params[6], params[7]);
         return params;
     }
-
-    CardModle cardModel(0,0);
-
-    if(params.size() == 4)
+    else
     {
-        return cardModel.linerMoving(params);
+        if (params.size() >= 8)
+            return { params[0], params[1], params[6], params[7] };
+        return {};
     }
-    if(params.size() == 2)
-    {
-        return cardModel.RotationMoving(params);
-    }
-    return QVector<double>();
 }
 
 QVector<double> MathModule::sendToSensorTransformation(QVector<double> params)
@@ -61,8 +82,8 @@ std::array<double, 6> calculateMarkerPose(const cv::Mat &transformationMatrix,
     return nikita::FanucModel::getCoordsFromMat(res);
 }
 
-QVector<std::array<double, 7>> MathModule::sendAfterSensorTransformation(const std::array<double, 6> jointCorners,
-    std::vector<std::array<double, 7>> objects)
+QVector<std::array<double, 7>> transformMarkerPosition(
+    const std::array<double, 6> jointCorners, std::vector<std::array<double, 7>> objects)
 {
     QVector<std::array<double, 7>> result;
     for (auto &i : objects)
@@ -73,4 +94,41 @@ QVector<std::array<double, 7>> MathModule::sendAfterSensorTransformation(const s
         result.push_back(std::array<double, 7>{i[0], res[0], res[1], res[2], res[3], res[4], res[5]});
     }
     return result;
+}
+
+QVector<QVector<double>> MathModule::sendAfterSensorTransformation(
+    std::vector<std::array<double, 7>> objects)
+{
+    std::array<double, 6> lastPoint;
+
+    for (int i = 0; i < 6; ++i)
+    {
+        lastPoint[i] = _lastReceivedPoint[i];
+    }
+
+    auto newMarkerPos = transformMarkerPosition(lastPoint, objects);
+
+    QVector<QVector<double>> result;
+    for (auto &i : objects)
+    {
+        result.push_back({i[0], i[1], i[2], i[3], i[4], i[5], i[6]});
+    }
+    return result;
+}
+
+QVector<double> MathModule::shutDownCommand()
+{
+    if (!_isCard)
+    {
+        auto res = _lastSendPoint;
+
+        res.push_back(DEFAULT_SPEED);
+        res.push_back(1);
+
+        return res;
+    }
+    else
+    {
+        return QVector<double>();
+    }
 }

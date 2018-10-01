@@ -1,13 +1,13 @@
 {
     "RCAConnector": {
-        "IPAdress": "localhost",
+        "IPAdress": "192.168.1.100",
         "Port": "9099",
         "WelcomeCommand": "f"
     },
     "RobotConnector": {
-        "IPAdress": "localhost",
+        "IPAdress": "192.168.1.103",
         "Port": "59002",
-        "WelcomeCommand": "2 0 3 7 4 1 0",
+        "WelcomeCommand": "2 2 3 7 4 1 0",
         "DataBlock": "6"
     },
     "SensorAdapter": {

@@ -5,10 +5,10 @@
 
 #include <QVector>
 
-class CardModle
+class CardModel
 {
 public:
-    CardModle(double curX, double curY);
+    CardModel(double curX, double curY);
 
     QVector<double> linerMoving(QVector<double> param);
 

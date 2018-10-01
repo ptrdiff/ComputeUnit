@@ -16,6 +16,6 @@ while True:
         data = conn.recv(1024).decode()
         if not data:
             break
-        print(data)
+        print(data + '-')
 
         conn.send(input().encode())

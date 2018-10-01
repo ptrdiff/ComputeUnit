@@ -16,8 +16,23 @@ class MathModule
 public:
 
     /**
-     * \brief               Constructor of math Class.
-     * \param[in] forCard   Flag if this CU would be used for card.
+     * \brief Default time for response.
+     */
+    static constexpr double TIME_FOR_RESPONSE = 30.;
+
+    /**
+     * \brief Default robot speed.
+     */
+    static constexpr double DEFAULT_SPEED = 0.1;
+
+    /**
+     * \brief Maximium robot speed.
+     */
+    static constexpr double MAX_SPEED = 2.;
+
+    /**
+     * \brief                   Constructor of math Class.
+     * \param[in] forCard       Flag if this CU would be used for card.
      */
     explicit MathModule(bool forCard = false);
 
@@ -45,21 +60,41 @@ public:
     QVector<double> sendToSensorTransformation(QVector<double> params);
 
     /**
-     * \brief                   Function for transformating params recived from sencor and sended to RCA.
-     * \param[in] jointCorners  
+     * \brief                   Function for transformating params recived from sencor and sended to
+     *                          RCA. 
      * \param[in] objects       
      * \return                  
      */
-    QVector<std::array<double, 7>>  sendAfterSensorTransformation(
-        std::array<double, 6> jointCorners, std::vector<std::array<double, 7>> objects);
+    QVector<QVector<double>>  sendAfterSensorTransformation(
+        std::vector<std::array<double, 7>> objects);
+
+    /**
+     * \brief   Getter for last send point.
+     * \return  Lasst send point.
+     */
+    QVector<double> shutDownCommand();
 
 protected:
 
     /**
      * \brief Flag is this CU for card.
      */
-    bool _isCard;
+    bool                _isCard;
 
+    /**
+     * \brief Flag if first point was send to robot.
+     */
+    bool                _wasFirstPointSend{ false };
+
+    /**
+     * \brief Array describing last point, sended to robot.
+     */
+    QVector<double>     _lastSendPoint;
+
+    /**
+     * \brief Array describing last point, recieved from robot.
+     */
+    QVector<double>     _lastReceivedPoint;
 };
 
 #endif // MATH_MODULE_H

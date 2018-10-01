@@ -8,9 +8,6 @@
 Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector,
   SensorAdapter &sensorAdapter, timur::CVS& cvs, MathModule& mathModule, QObject *parent) try :
   QObject(parent),
-  _wasFirstPoint(false),
-  _lastSendPoint({ 985, 0, 940, -180, 0, 0 }),
-  _lastReceivedPoint({ 0, 0, 0, 0, -90, 0 }),
   _controlCenterConnector(controlCenterConnector),
   _robotConnector(robotConnector),
   _sensorAdapter(sensorAdapter),
@@ -18,8 +15,8 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
   _mathModule(mathModule),
   _commandTable({
                  {ExectorCommand::SHUT_DOWN,        {&Executor::shutDownComputeUnit,           -1}},
-                 {ExectorCommand::SEND_TO_ROBOT,    {&Executor::sendRobotMoveCommand,           7}},
-                 {ExectorCommand::SEND_TO_RCA,      {&Executor::sendControlCenterRobotPosition, 6}},
+                 {ExectorCommand::SEND_TO_ROBOT,    {&Executor::sendRobotMoveCommand,          -1}},
+                 {ExectorCommand::SEND_TO_RCA,      {&Executor::sendControlCenterRobotPosition,-1}},
                  {ExectorCommand::SEND_TO_SENSOR,   {&Executor::getComputerVisionSystemData,   -1}},
                  {ExectorCommand::RECV_FROM_SENSOR, {&Executor::newSensorData,                 -1}}
     })
@@ -123,32 +120,12 @@ void Executor::sendRobotMoveCommand(QVector<double> params)
   qInfo() << QString("Start sending command to Robot. Parameters: %1").arg(dataString);
   const auto startChrono = std::chrono::steady_clock::now();
 
-  double speed = DEFAULT_SPEED;
-
   params = _mathModule.sendToRobotTransformation(params);
 
-  if (_wasFirstPoint)
+  if (!params.empty())
   {
-    speed = 0.;
-
-    for (size_t i = 0; i < 6; ++i)
-    {
-      speed += abs(_lastSendPoint.at(i) - params.at(i));
-    }
-
-    speed = std::min(speed / TIME_FOR_RESPONSE, MAX_SPEED);
+      emit signalWriteToRobot(params);
   }
-
-  _wasFirstPoint = true;
-  for (size_t i = 0; i < 6; ++i)
-  {
-    _lastSendPoint[i] = params.at(i);
-  }
-
-  params.push_back(speed);
-  std::swap(params[6], params[7]);
-
-  emit signalWriteToRobot(params);
 
   const auto endChrono = std::chrono::steady_clock::now();
   const auto durationChrono =
@@ -169,10 +146,10 @@ void Executor::sendControlCenterRobotPosition(QVector<double> params)
 
   params = _mathModule.sendToRCATransformation(params);
 
-  _lastReceivedPoint = params;
-
-  emit signalWriteToControlCenter(std::move(params));
-
+  if (!params.empty())
+  {
+      emit signalWriteToControlCenter(params);
+  }
   const auto endChrono = std::chrono::steady_clock::now();
   const auto durationChrono =
     std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
@@ -192,12 +169,7 @@ void Executor::shutDownComputeUnit(QVector<double> params)
 
   if (_robotConnector.isConnected())
   {
-    QVector<double> message = _lastSendPoint;
-
-    message.push_back(DEFAULT_SPEED);
-    message.push_back(1);
-
-    emit signalWriteToRobot(message);
+    emit signalWriteToRobot(_mathModule.shutDownCommand());
   }
 
   if (params.empty())
@@ -246,7 +218,7 @@ void Executor::askSensor(QVector<double> params)
   {
     if (_sensorAdapter.isOpen(elem))
     {
-      _sensorAdapter.sendCurPosition(elem, _mathModule.sendToSensorTransformation(_lastSendPoint));
+      _sensorAdapter.sendCurPosition(elem, QVector<double>());
     }
   }
 
@@ -268,26 +240,14 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     if (_robotConnector.isNotMoving())
     {
         try {
-        const auto objectCameraPosition = _cvs.getMarkerPose();
+            const auto objectCameraPosition = _cvs.getMarkerPose();
 
-        std::array<double, 6> lastPoint;
-
-        for (int i = 0; i < 6; ++i)
-        {
-            lastPoint[i] = _lastReceivedPoint[i];
-        }
-
-            const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastPoint,
+            const auto objectPositions = _mathModule.sendAfterSensorTransformation(
                 objectCameraPosition);
 
             for (auto &object : objectPositions)
             {
-                QVector<double> command(7);
-                for (int i = 0; i < 7; ++i)
-                {
-                    command[i] = object[i];
-                }
-                emit sendControlCenterRobotPosition(command);
+                emit sendControlCenterRobotPosition(object);
                 wasSend = true;
             }
         }

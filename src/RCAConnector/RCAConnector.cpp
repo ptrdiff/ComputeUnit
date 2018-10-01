@@ -125,7 +125,7 @@ void RCAConnector::slotWriteToServer(QVector<double> data)
     const auto startChrono = std::chrono::steady_clock::now();
 
     QTextStream dataStream(_socket.get());
-    dataStream << R"("data" : ")";
+    dataStream << R"("cube" : ")";
     for (auto &i : data)
     {
         dataStream << i << ' ';

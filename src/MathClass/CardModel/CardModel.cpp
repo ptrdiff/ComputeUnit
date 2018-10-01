@@ -6,7 +6,7 @@ std::string intToStr(double n)
 }
 
 
-CardModle::CardModle(double curX, double curY)
+CardModel::CardModel(double curX, double curY)
     :
     _curX(curX),
     _curY(curY),
@@ -20,7 +20,7 @@ CardModle::CardModle(double curX, double curY)
 
 }
 
-QVector<double> CardModle::linerMoving(QVector<double> params)
+QVector<double> CardModel::linerMoving(QVector<double> params)
 {
     _curX = params[0];
     _curY = params[1];
@@ -36,7 +36,7 @@ QVector<double> CardModle::linerMoving(QVector<double> params)
         _gotoAlpha, _spdKoef, hypotenuse };
 }
 
-QVector<double> CardModle::RotationMoving(QVector<double> params)
+QVector<double> CardModel::RotationMoving(QVector<double> params)
 {
     _curAlpha = params[0];
     _gotoAlpha = params[1];
@@ -75,13 +75,13 @@ QVector<double> CardModle::RotationMoving(QVector<double> params)
     }
 }
 
-void CardModle::setPoint(double  gotoX, double gotoY)
+void CardModel::setPoint(double  gotoX, double gotoY)
 {
     _gotoX = gotoX;
     _gotoY = gotoY;
 }
 
-void CardModle::turnOnAngle()
+void CardModel::turnOnAngle()
 {
     double alpha = atan2(_gotoY - _curY, _gotoX - _curX) * 180.0 / PI;
     double thisAngleSmaller;
@@ -122,7 +122,7 @@ void CardModle::turnOnAngle()
     }
 }
 
-void CardModle::goOnLine()
+void CardModel::goOnLine()
 {
     double hypotenuse = sqrt(pow((_gotoX - _curX), 2) + pow((_gotoY - _curY), 2));
     if (hypotenuse == 0)
@@ -137,7 +137,7 @@ void CardModle::goOnLine()
     }
 }
 
-void CardModle::pognali(double gotoX, double gotoY)
+void CardModel::pognali(double gotoX, double gotoY)
 {
     setPoint(gotoX, gotoY);
 
@@ -156,7 +156,7 @@ void CardModle::pognali(double gotoX, double gotoY)
     std::cout << command2 << "\n";//отправляем дальше
 }
 
-void CardModle::angleForsecondTypeOfMoving()
+void CardModel::angleForsecondTypeOfMoving()
 {
     double alpha = atan2(_gotoY - _curY, _gotoX - _curX) * 180.0 / PI;
 
@@ -181,7 +181,7 @@ void CardModle::angleForsecondTypeOfMoving()
     }
 }
 
-void CardModle::secondTypeOfMoving(double gotoX, double gotoY)
+void CardModel::secondTypeOfMoving(double gotoX, double gotoY)
 {
     setPoint(gotoX, gotoY);
     angleForsecondTypeOfMoving();
@@ -197,17 +197,17 @@ void CardModle::secondTypeOfMoving(double gotoX, double gotoY)
 
 }
 
-std::string CardModle::grtCommandMoveBySecondType()
+std::string CardModel::grtCommandMoveBySecondType()
 {
     return _commandForMovingBySecondTypeOfMoving;
 }
 
-std::string CardModle::getCommandTurn()
+std::string CardModel::getCommandTurn()
 {
     return _commandForTurning;
 }
 
-std::string CardModle::getCommandMove()
+std::string CardModel::getCommandMove()
 {
     return _commandForMoving;
 }

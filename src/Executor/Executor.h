@@ -22,21 +22,6 @@ class Executor : public QObject
     Q_OBJECT
 
 public:
-
-    /**
-     * \brief Default time for response.
-     */
-    static constexpr double TIME_FOR_RESPONSE = 30.;
-
-    /**
-     * \brief Default robot speed.
-     */
-    static constexpr double DEFAULT_SPEED = 0.1;
-
-    /**
-     * \brief Maximium robot speed.
-     */
-    static constexpr double MAX_SPEED = 2.;
     
     /**
      * \brief                             Constructor executor and connecting to robot server and
@@ -91,21 +76,6 @@ private:
      * \brief Designation for link to function.
      */
     using executableCommand = void(Executor::*)(QVector<double>);
-
-    /**
-     * \brief Flag if first point was send to robot.
-     */
-    bool                                                                   _wasFirstPoint{false};
-
-    /**
-     * \brief Array describing last point, sended to robot.
-     */
-    QVector<double>                                                        _lastSendPoint;
-
-    /**
-     * \brief Array describing last point, recieved from robot.
-     */
-    QVector<double>                                                        _lastReceivedPoint;
 
     /**
      * \brief Adaptor for communication with buismess layer.
