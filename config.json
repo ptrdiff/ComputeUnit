@@ -1,11 +1,11 @@
 {
     "RCAConnector": {
-        "IPAdress": "192.168.0.107",
+        "IPAdress": "localhost",
         "Port": "9099",
         "WelcomeCommand": "f"
     },
     "RobotConnector": {
-        "IPAdress": "192.168.0.107",
+        "IPAdress": "localhost",
         "Port": "59002",
         "WelcomeCommand": "2 0 3 7 4 1 0",
         "DataBlock": "6"
@@ -21,9 +21,9 @@
     },
     "ComputerVisionSystem": {
         "ArucoSqureDimension": "0.64",
-        "CountOfMarkers": "9",
-        "MarkerSize": "3",
-        "CameraIndex": "1",
+        "CountOfMarkers": "64",
+        "MarkerSize": "4",
+        "CameraIndex": "0",
         "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
     },
     "MathModule": {

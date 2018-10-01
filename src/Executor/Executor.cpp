@@ -9,7 +9,8 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
   SensorAdapter &sensorAdapter, timur::CVS& cvs, MathModule& mathModule, QObject *parent) try :
   QObject(parent),
   _wasFirstPoint(false),
-  _lastSendPoint({ 0,0,0,0,-90,0 }),
+  _lastSendPoint({ 985, 0, 940, -180, 0, 0 }),
+  _lastReceivedPoint({ 0, 0, 0, 0, -90, 0 }),
   _controlCenterConnector(controlCenterConnector),
   _robotConnector(robotConnector),
   _sensorAdapter(sensorAdapter),
@@ -132,7 +133,7 @@ void Executor::sendRobotMoveCommand(QVector<double> params)
 
     for (size_t i = 0; i < 6; ++i)
     {
-      speed += abs(_lastSendPoint[i] - params[i]);
+      speed += abs(_lastSendPoint.at(i) - params.at(i));
     }
 
     speed = std::min(speed / TIME_FOR_RESPONSE, MAX_SPEED);
@@ -141,7 +142,7 @@ void Executor::sendRobotMoveCommand(QVector<double> params)
   _wasFirstPoint = true;
   for (size_t i = 0; i < 6; ++i)
   {
-    _lastSendPoint[i] = params[i];
+    _lastSendPoint[i] = params.at(i);
   }
 
   params.push_back(speed);
@@ -266,6 +267,7 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     bool wasSend = false;
     if (_robotConnector.isNotMoving())
     {
+        try {
         const auto objectCameraPosition = _cvs.getMarkerPose();
 
         std::array<double, 6> lastPoint;
@@ -275,7 +277,6 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
             lastPoint[i] = _lastReceivedPoint[i];
         }
 
-        try {
             const auto objectPositions = _mathModule.sendAfterSensorTransformation(lastPoint,
                 objectCameraPosition);
 

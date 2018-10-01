@@ -18,7 +18,7 @@ QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
 
 QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
 {
-    if(_isCard)
+    if(!_isCard)
     {
         return params;
     }
