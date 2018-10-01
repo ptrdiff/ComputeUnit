@@ -16,6 +16,12 @@ class MathModule
 public:
 
     /**
+     * \brief               Constructor of math Class.
+     * \param[in] forCard   Flag if this CU would be used for card.
+     */
+    explicit MathModule(bool forCard = false);
+
+    /**
      * \brief                   Function for transformating params sended to RCA.
      * \param[in] params        Params for transforamtion.
      * \return                  Transformed params
@@ -46,6 +52,13 @@ public:
      */
     QVector<std::array<double, 7>>  sendAfterSensorTransformation(
         std::array<double, 6> jointCorners, std::vector<std::array<double, 7>> objects);
+
+protected:
+
+    /**
+     * \brief Flag is this CU for card.
+     */
+    bool _isCard;
 
 };
 

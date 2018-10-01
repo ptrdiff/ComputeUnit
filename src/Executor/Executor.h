@@ -103,6 +103,11 @@ private:
     QVector<double>                                                        _lastSendPoint;
 
     /**
+     * \brief Array describing last point, recieved from robot.
+     */
+    QVector<double>                                                        _lastReceivedPoint;
+
+    /**
      * \brief Adaptor for communication with buismess layer.
      */
     RCAConnector&                                                          _controlCenterConnector;

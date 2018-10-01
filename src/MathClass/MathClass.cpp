@@ -4,6 +4,12 @@
 
 #include <opencv2/calib3d.hpp>
 
+#include "CardModel/CardModel.h"
+
+
+MathModule::MathModule(bool forCard):_isCard(forCard)
+{
+}
 
 QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
 {
@@ -12,7 +18,22 @@ QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
 
 QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
 {
-    return params;
+    if(_isCard)
+    {
+        return params;
+    }
+
+    CardModle cardModel(0,0);
+
+    if(params.size() == 4)
+    {
+        return cardModel.linerMoving(params);
+    }
+    if(params.size() == 2)
+    {
+        return cardModel.RotationMoving(params);
+    }
+    return QVector<double>();
 }
 
 QVector<double> MathModule::sendToSensorTransformation(QVector<double> params)

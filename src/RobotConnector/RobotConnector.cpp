@@ -10,6 +10,8 @@ RobotConnector::RobotConnector(std::string serverIP, int port, std::string welco
     _port(static_cast<quint16>(port)),
     _welcomeCommand(std::move(welcomeCommand)),
     _inputBlock(inputBlock),
+    _sendedCommands(0),
+    _recievedCommands(0),
     _socket(std::make_unique<QTcpSocket>(this))
 {
     qInfo() << QString("Create with parameters: IP: %1, Port: %2").arg(QString::fromStdString(_serverIP),
@@ -24,6 +26,11 @@ RobotConnector::RobotConnector(std::string serverIP, int port, std::string welco
 bool RobotConnector::isConnected() const
 {
     return _socket->state() == QTcpSocket::SocketState::ConnectedState;
+}
+
+bool RobotConnector::isNotMoving() const
+{
+    return _sendedCommands == _recievedCommands;
 }
 
 void RobotConnector::slotToConnect()
@@ -76,6 +83,8 @@ void RobotConnector::slotWriteToServer(QVector<double> data)
     dataStream << data.at(data.size() - 1);
     dataStream.flush();
 
+    ++_sendedCommands;
+
     const auto endChrono = std::chrono::steady_clock::now();
     const auto durationChrono =
         std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
@@ -103,6 +112,7 @@ void RobotConnector::slotToReadyRead()
             {
                 emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
                 coords.clear();
+                ++_recievedCommands;
             }
         }
         locData.skipWhiteSpace();
@@ -111,6 +121,7 @@ void RobotConnector::slotToReadyRead()
     if (!coords.empty())
     {
         emit signalNextCommand(ExectorCommand::SEND_TO_RCA, coords);
+        ++_recievedCommands;
     }
 
     const auto endChrono = std::chrono::steady_clock::now();

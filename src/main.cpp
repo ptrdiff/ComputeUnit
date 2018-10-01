@@ -74,6 +74,7 @@ int main(int argc, char *argv[])
         QMap RobotConnectorConfig = config["RobotConnector"].toMap();
         QMap SensorAdapterConfig = config["SensorAdapter"].toMap();
         QMap ComputerVisionSystem = config["ComputerVisionSystem"].toMap();
+        QMap MathModuleConfig = config["MathModule"].toMap();
         RCAConnector rcaConnector(RCAConnectorConfig["IPAdress"].toString().toStdString(),
                                   RCAConnectorConfig["Port"].toInt(), 
                                   RCAConnectorConfig["WelcomeCommand"].toString().toStdString());
@@ -100,7 +101,7 @@ int main(int argc, char *argv[])
         {
             qCritical() << QString("Can't access camera");
         }
-        MathModule mathModule;
+        MathModule mathModule(MathModuleConfig["IsCard"].toInt());
         Executor executor(rcaConnector, robotConnector, sensorAdapter, cvs, mathModule);
 
         return a.exec();
