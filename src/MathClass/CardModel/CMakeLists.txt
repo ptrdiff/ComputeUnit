@@ -3,23 +3,12 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
-project(MathClass)
-
-if(WIN32)
-    set(OpenCV_DIR "D:/Common Files/OpenCV/build/x64/vc14/lib")
-endif()
-
-find_package(OpenCV REQUIRED)
-
-add_subdirectory("FanucModel")
-add_subdirectory("CardModel")
+project(CardModel)
 
 add_library(${PROJECT_NAME} STATIC
-    MathClass.h
-    MathClass.cpp
+    CardModel.h
+    CardModel.cpp
 )
-
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${PROJECT_MAIN_DIR}
@@ -28,5 +17,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     FanucModel
-    CardModel
 )

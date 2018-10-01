@@ -297,7 +297,7 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     }
     else
     {
-        qCritical() << QString("Can't use CVS during moving");
+        qCritical() << QString("Not allowed use CVS during moving");
     }
 
     if (!wasSend) 
