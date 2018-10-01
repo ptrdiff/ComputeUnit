@@ -25,5 +25,8 @@
         "MarkerSize": "3",
         "CameraIndex": "1",
         "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
+    },
+    "MathModule": {
+        "IsCard": "0"
     }
 }
