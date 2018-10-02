@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QCommandLineParser>
 
 #include "Executor/Executor.h"
 #include "RCAConnector/RCAConnector.h"
@@ -64,7 +65,46 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageOutput);
     QCoreApplication a(argc, argv);
 
-    QFile congFile("config.json");
+    QCoreApplication::setApplicationName("ControllUnit");
+    QCoreApplication::setApplicationVersion("0.4");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Controll unit for managing robot and sensors connected to \
+this robot");
+    const QCommandLineOption helpOption = parser.addHelpOption();
+    const QCommandLineOption versionOption = parser.addVersionOption();
+
+    QCommandLineOption targetDirectoryOption(QStringList() << "c" << "config-file",
+        QCoreApplication::translate("main", "Path to config file."),
+        QCoreApplication::translate("main", "file path"));
+    parser.addOption(targetDirectoryOption);
+
+
+    if (!parser.parse(QCoreApplication::arguments())) {
+        qCritical() << "can't parse input parametrs";
+        return -2;
+    }
+
+    if (parser.isSet(helpOption))
+    {
+        parser.showHelp();
+    }
+
+    if (parser.isSet(versionOption))
+    {
+        std::cout << "Application name: " << QCoreApplication::applicationName().toStdString() <<
+            "\nversion: " << QCoreApplication::applicationVersion().toStdString() << '\n';
+        return 0;
+    }
+
+    QString configFileName = "config.json";
+
+    if (parser.isSet(targetDirectoryOption))
+    {
+        configFileName = parser.value(targetDirectoryOption);
+    }
+
+    QFile congFile(configFileName);
     if (congFile.open(QIODevice::ReadOnly))
     {
         QString settings = congFile.readAll();
@@ -106,7 +146,7 @@ int main(int argc, char *argv[])
 
         return a.exec();
     }
-    qCritical() << QString("Can't open config file");
+    qCritical() << QString("Can't open config file: %1").arg(configFileName);
     return -1;
     
   }
