@@ -47,12 +47,26 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
 
         params.push_back(speed);
         std::swap(params[6], params[7]);
+
+        for(int i=0; i<7; ++i)
+        {
+            params[i] *= 1000;
+        }
+
         return params;
     }
     else
     {
         if (params.size() >= 8)
-            return { params[0], params[1], params[6], params[7] };
+        {
+            auto coords = _cardModel.secondTypeOfMoving(params[0], params[1], params[6], params[7]);
+            QVector<double> message;
+            for(auto& coord: coords)
+            {
+                message.push_back(coord);
+            }
+            return message;
+        }
         return {};
     }
 }

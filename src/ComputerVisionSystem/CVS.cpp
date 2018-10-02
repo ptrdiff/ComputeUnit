@@ -12,7 +12,8 @@ timur::CVS::CVS(float arucoSqureDimension, int cointOfMarkers, int markerSize,
         :_arucoMarkers(arucoSqureDimension,cointOfMarkers,markerSize)
         ,_vid(cameraIndex)
         ,_camera(calibrationFileName)
-{}
+{
+}
 
 std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
 {

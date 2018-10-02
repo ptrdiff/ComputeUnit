@@ -7,6 +7,7 @@
 #include <QVector>
 
 #include "FanucModel/FanucModel.h"
+#include "CardModel/CardModel.h"
 
 /**
  * \brief Class with math for params transformation.
@@ -95,6 +96,11 @@ protected:
      * \brief Array describing last point, recieved from robot.
      */
     QVector<double>     _lastReceivedPoint;
+
+    /**
+     * \brief Class for transforming commands for card.
+     */
+    CardModel           _cardModel;
 };
 
 #endif // MATH_MODULE_H

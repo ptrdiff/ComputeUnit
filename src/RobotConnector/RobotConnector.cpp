@@ -78,7 +78,7 @@ void RobotConnector::slotWriteToServer(QVector<double> data)
     dataStream << "1 ";
     for (auto i = 0; i + 1 < data.size(); ++i)
     {
-        dataStream << lround(data.at(i) * 1000) << ' ';
+        dataStream << lround(data.at(i)) << ' ';
     }
     dataStream << data.at(data.size() - 1);
     dataStream.flush();
@@ -103,6 +103,9 @@ void RobotConnector::slotToReadyRead()
     {
         QString chunk;
         locData >> chunk;
+        
+        qDebug() << chunk;
+        
         bool isDouble;
         double coord = chunk.toDouble(&isDouble);
         if (isDouble)

@@ -2,13 +2,13 @@
     "RCAConnector": {
         "IPAdress": "192.168.1.103",
         "Port": "9099",
-        "WelcomeCommand": "f"
+        "WelcomeCommand": "t"
     },
     "RobotConnector": {
-        "IPAdress": "172.27.221.60",
-        "Port": "59002",
-        "WelcomeCommand": "2 2 3 7 4 1 0",
-        "DataBlock": "6"
+        "IPAdress": "192.168.1.108",
+        "Port": "9092",
+        "WelcomeCommand": "",
+        "DataBlock": "3"
     },
     "SensorAdapter": {
         "SensorCount": 0,
@@ -27,6 +27,6 @@
         "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
     },
     "MathModule": {
-        "IsCard": "0"
+        "IsCard": "1"
     }
 }
