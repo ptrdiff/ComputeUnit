@@ -55,6 +55,7 @@ void RCAConnector::slotToReadyRead()
     do {
         locData >> token;
         coord = token.toDouble(&isDouble);
+        locData.skipWhiteSpace();
     } while (isDouble);
 
     QVector<double> coords;

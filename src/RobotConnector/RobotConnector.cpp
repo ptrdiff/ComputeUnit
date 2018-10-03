@@ -104,8 +104,6 @@ void RobotConnector::slotToReadyRead()
         QString chunk;
         locData >> chunk;
         
-        qDebug() << chunk;
-        
         bool isDouble;
         double coord = chunk.toDouble(&isDouble);
         if (isDouble)
