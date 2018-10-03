@@ -7,12 +7,13 @@
 #include "CardModel/CardModel.h"
 
 
-MathModule::MathModule(bool forCard):
+MathModule::MathModule(QVector<double> curPosition, bool forCard):
 _isCard(forCard),
 _wasFirstPointSend(false),
-_lastSendPoint({ 985, 0, 940, -180, 0, 0 }),
+_lastSendPoint(curPosition),
 _lastReceivedPoint({ 0, 0, 0, 0, -90, 0 })
 {
+    
 }
 
 QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
@@ -62,6 +63,18 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
             auto coords = _cardModel.secondTypeOfMoving(params[0], params[1], params[6], params[7]);
             QVector<double> message;
             for(auto& coord: coords)
+            {
+                message.push_back(coord);
+            }
+            return message;
+        }
+        if(params.size() == 2)
+        {
+            auto coords = _cardModel.secondTypeOfMoving(_lastSendPoint[0], _lastSendPoint[1], 
+                params[0], params[1]);
+            _lastSendPoint = params;
+            QVector<double> message;
+            for (auto& coord : coords)
             {
                 message.push_back(coord);
             }

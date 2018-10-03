@@ -185,7 +185,8 @@ void Executor::shutDownComputeUnit(QVector<double> params)
 
 void Executor::slotToSocketError()
 {
-  shutDownComputeUnit({ -1 });
+    qDebug() << QString("Get socket error!");
+  shutDownComputeUnit({ -4 });
 }
 
 void Executor::newSensorData(QVector<double> params)

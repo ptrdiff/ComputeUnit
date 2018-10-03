@@ -33,9 +33,10 @@ public:
 
     /**
      * \brief                   Constructor of math Class.
+     * \param[in] startPostion  Current robot position.
      * \param[in] forCard       Flag if this CU would be used for card.
      */
-    explicit MathModule(bool forCard = false);
+    explicit MathModule(QVector<double> startPostion, bool forCard = false);
 
     /**
      * \brief                   Function for transformating params sended to RCA.

@@ -1,12 +1,12 @@
 {
     "RCAConnector": {
-        "IPAdress": "192.168.1.103",
+        "IPAdress": "192.168.1.100",
         "Port": "9099",
         "WelcomeCommand": "t"
     },
     "RobotConnector": {
         "IPAdress": "192.168.1.108",
-        "Port": "9092",
+        "Port": "9093",
         "WelcomeCommand": "",
         "DataBlock": "3"
     },
@@ -27,6 +27,7 @@
         "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
     },
     "MathModule": {
-        "IsCard": "1"
+        "IsCard": "1",
+        "StartPostion":  [300, -1000]
     }
 }

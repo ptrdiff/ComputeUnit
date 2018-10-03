@@ -1,11 +1,11 @@
 {
     "RCAConnector": {
-        "IPAdress": "localhost",
+        "IPAdress": "192.168.1.103",
         "Port": "9099",
         "WelcomeCommand": "f"
     },
     "RobotConnector": {
-        "IPAdress": "localhost",
+        "IPAdress": "172.27.221.60",
         "Port": "59002",
         "WelcomeCommand": "2 2 3 7 4 1 0",
         "DataBlock": "6"
@@ -27,6 +27,7 @@
         "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
     },
     "MathModule": {
-        "IsCard": "0"
+        "IsCard": "0",
+        "StartPostion": [ 985, 0, 940, -180, 0, 0 ]
     }
 }

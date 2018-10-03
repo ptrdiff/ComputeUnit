@@ -141,7 +141,15 @@ this robot");
         {
             qCritical() << QString("Can't access camera");
         }
-        MathModule mathModule(MathModuleConfig["IsCard"].toInt());
+
+        QVector<double> position;
+
+        for(auto& coord: MathModuleConfig["StartPostion"].toList())
+        {
+            position.push_back(coord.toFloat());
+        }
+
+        MathModule mathModule(position, MathModuleConfig["IsCard"].toInt());
         Executor executor(rcaConnector, robotConnector, sensorAdapter, cvs, mathModule);
 
         return a.exec();
