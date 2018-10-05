@@ -29,7 +29,7 @@ public:
     /**
      * \brief Maximium robot speed.
      */
-    static constexpr double MAX_SPEED = 2.;
+    static constexpr double MAX_SPEED = 0.25;
 
     /**
      * \brief                   Constructor of math Class.

@@ -156,6 +156,6 @@ QVector<double> MathModule::shutDownCommand()
     }
     else
     {
-        return QVector<double>();
+        return {-1};
     }
 }
