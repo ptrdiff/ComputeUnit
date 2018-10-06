@@ -101,23 +101,23 @@ cv::Mat createTransformationMatrix(const cv::Vec3d& rotationVector,
 }
 
 std::array<double, 6> calculateMarkerPose(const cv::Mat &transformationMatrix,
-    const std::array<double, 6> jointCorners)
+    const std::array<double, 6> cartesianCoords)
 {
     nikita::FanucModel _fanuc = nikita::FanucModel();
-    const cv::Mat p6 = _fanuc.fanucForwardTask(jointCorners);
+    const cv::Mat p6 = nikita::FanucModel::matrixFromCartesianCoords(cartesianCoords);
     cv::Mat res = p6 * _fanuc.getToCamera() * transformationMatrix * _fanuc.getToSixth();
     return nikita::FanucModel::getCoordsFromMat(res);
 }
 
 QVector<std::array<double, 7>> transformMarkerPosition(
-    const std::array<double, 6> jointCorners, std::vector<std::array<double, 7>> objects)
+    const std::array<double, 6> jointAngles, std::vector<std::array<double, 7>> objects)
 {
     QVector<std::array<double, 7>> result;
     for (auto &i : objects)
     {
         cv::Mat transformMatrix = createTransformationMatrix(cv::Vec3d(i[1], i[2], i[3]),
             cv::Vec3d(i[4], i[5], i[6]));
-        std::array<double, 6> res = calculateMarkerPose(transformMatrix, jointCorners);
+        std::array<double, 6> res = calculateMarkerPose(transformMatrix, jointAngles);
         result.push_back(std::array<double, 7>{i[0], res[0], res[1], res[2], res[3], res[4], res[5]});
     }
     return result;

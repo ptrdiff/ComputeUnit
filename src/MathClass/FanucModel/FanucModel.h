@@ -46,6 +46,7 @@ namespace nikita
         cv::Mat getForMovingToCamera() const;
 
         static std::array<double, 6> getCoordsFromMat(cv::Mat transformMatrix);
+        static cv::Mat matrixFromCartesianCoords( std::array<double, 6> coords);
     };
 }
 #endif //ROBOMODEL_FANUCMODEL_LIBRARY_H

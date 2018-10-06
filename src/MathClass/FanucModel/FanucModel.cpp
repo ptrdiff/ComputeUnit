@@ -82,3 +82,34 @@ cv::Mat nikita::FanucModel::getForMovingToCamera() const
 {
     return _forMovingToCamera;
 }
+
+cv::Mat nikita::FanucModel::matrixFromCartesianCoords( std::array<double, 6> coords)
+{
+    cv::Mat mx(3, 3, CV_64F), my(3, 3, CV_64F), mz(3, 3, CV_64F);
+    mx.at<double>(0, 0) = 1;
+    mx.at<double>(0, 1) = mx.at<double>(0, 2) = mx.at<double>(1, 0) = mx.at<double>(2, 0) = 0;
+    mx.at<double>(1, 1) = mx.at<double>(2, 2) = cos(coords[3]);
+    mx.at<double>(1, 2) = -sin(coords[3]);
+    mx.at<double>(2, 1) = sin(coords[3]);
+
+    my.at<double>(1, 1) = 1;
+    my.at<double>(0, 1) = my.at<double>(1, 2) = my.at<double>(1, 0) = my.at<double>(2, 1) = 0;
+    my.at<double>(0, 0) = my.at<double>(2, 2) = cos(coords[4]);
+    my.at<double>(0, 2) = sin(coords[4]);
+    my.at<double>(2, 0) = -sin(coords[4]);
+
+    mz.at<double>(2, 2) = 1;
+    mz.at<double>(0, 2) = mz.at<double>(1, 2) = mz.at<double>(2, 0) = mz.at<double>(2, 1) = 0;
+    mz.at<double>(1, 1) = mz.at<double>(0, 0) = cos(coords[5]);
+    mz.at<double>(0, 1) = -sin(coords[5]);
+    mz.at<double>(1, 0) = sin(coords[5]);
+
+    cv::Mat rotationMatrix =  mz * my * mx;
+
+    cv::Mat transformationMatrix = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
+    rotationMatrix.copyTo(transformationMatrix(cv::Rect(0, 0, 3, 3)));
+    cv::Mat(cv::Vec3d(coords[0],coords[1],coords[2]) * 1000)
+    .copyTo(transformationMatrix(cv::Rect(3, 0, 1, 3)));
+    transformationMatrix.at<double>(3, 3) = 1;
+    return transformationMatrix;
+}
