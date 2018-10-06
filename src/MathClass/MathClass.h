@@ -99,6 +99,11 @@ protected:
     QVector<double>     _lastReceivedPoint;
 
     /**
+     * \brief Array describing robot default position.
+     */
+    QVector<double>     _defaultPosition;
+
+    /**
      * \brief Class for transforming commands for card.
      */
     CardModel           _cardModel;
