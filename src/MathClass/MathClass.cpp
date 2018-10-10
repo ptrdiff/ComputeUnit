@@ -138,7 +138,12 @@ QVector<QVector<double>> MathModule::sendAfterSensorTransformation(
     QVector<QVector<double>> result;
     for (auto &i : objects)
     {
-        result.push_back({i[0], i[1], i[2], i[3], i[4], i[5], i[6]});
+        QVector<double> object;
+        for(auto&j : i)
+        {
+            object.push_back(j);
+        }
+        result.push_back(object);
     }
     return result;
 }
