@@ -248,6 +248,12 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
 
             for (auto &object : objectPositions)
             {
+                dataString.clear();
+                for (auto &i : object)
+                {
+                    dataString.push_back(QString("%1 ").arg(i));
+                }
+                qInfo() << QString("Start sending CVS data. Parameters: %1").arg(dataString);
                 emit sendControlCenterRobotPosition(object);
                 wasSend = true;
             }
