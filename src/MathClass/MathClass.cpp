@@ -69,7 +69,7 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
             }
             return message;
         }
-        if(params.size() == 2)
+        if(params.size() >= 2)
         {
             auto coords = _cardModel.secondTypeOfMoving(_lastSendPoint[0], _lastSendPoint[1], 
                 params[0], params[1]);

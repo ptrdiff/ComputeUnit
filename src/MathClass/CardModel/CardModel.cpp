@@ -158,8 +158,8 @@ std::array<double, 9> CardModel::secondTypeOfMoving(double curX, double curY, do
         intToStr(_gotoAlpha) + _dotZero + _space + intToStr(_speedForRiding) + _dotZero + _space +
         intToStr(hypotenuse) + _dotZero;*/
 
-    std::array<double, 9> coordinates = { { _gotoAlpha, _speedForRiding, hypotenuse,
-        _gotoAlpha,_speedForRiding, hypotenuse,  _gotoAlpha, _speedForRiding, hypotenuse} };
+    std::array<double, 9> coordinates = { { _gotoAlpha, -_speedForRiding, hypotenuse,
+        _gotoAlpha,-_speedForRiding, hypotenuse,  _gotoAlpha, -_speedForRiding, hypotenuse} };
 
     return coordinates;
 }
