@@ -11,7 +11,8 @@ MathModule::MathModule(QVector<double> curPosition, bool forCard):
 _isCard(forCard),
 _wasFirstPointSend(false),
 _lastSendPoint(curPosition),
-_lastReceivedPoint({ 0, 0, 0, 0, -90, 0 })
+_lastReceivedPoint({ 0, 0, 0, 0, -90, 0 }),
+_defaultPosition(curPosition)
 {
     
 }
@@ -68,7 +69,7 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
             }
             return message;
         }
-        if(params.size() == 2)
+        if(params.size() >= 2)
         {
             auto coords = _cardModel.secondTypeOfMoving(_lastSendPoint[0], _lastSendPoint[1], 
                 params[0], params[1]);
@@ -152,7 +153,7 @@ QVector<double> MathModule::shutDownCommand()
 {
     if (!_isCard)
     {
-        auto res = _lastSendPoint;
+        auto res = _defaultPosition;
 
         res.push_back(DEFAULT_SPEED);
         res.push_back(1);
@@ -161,6 +162,10 @@ QVector<double> MathModule::shutDownCommand()
     }
     else
     {
-        return {-1};
+        auto command = sendToRobotTransformation(_defaultPosition);
+
+        //command.push_back(-1);
+
+        return command;
     }
 }

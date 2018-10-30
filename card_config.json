@@ -1,11 +1,11 @@
 {
     "RCAConnector": {
-        "IPAdress": "192.168.1.103",
+        "IPAdress": "192.168.1.105",
         "Port": "9099",
         "WelcomeCommand": "t"
     },
     "RobotConnector": {
-        "IPAdress": "192.168.1.108",
+        "IPAdress": "192.168.1.100",
         "Port": "9093",
         "WelcomeCommand": "",
         "DataBlock": "3"
@@ -28,6 +28,6 @@
     },
     "MathModule": {
         "IsCard": "1",
-        "StartPostion":  [0, -1300]
+        "StartPostion":  [-1105, -1076]
     }
 }

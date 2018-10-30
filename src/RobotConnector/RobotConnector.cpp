@@ -83,6 +83,8 @@ void RobotConnector::slotWriteToServer(QVector<double> data)
     dataStream << data.at(data.size() - 1);
     dataStream.flush();
 
+    _socket->waitForBytesWritten();
+
     ++_sendedCommands;
 
     const auto endChrono = std::chrono::steady_clock::now();
