@@ -148,7 +148,7 @@ void Executor::sendControlCenterRobotPosition(QVector<double> params)
 
   if (!params.empty())
   {
-      emit signalWriteToControlCenter(params);
+      emit signalWriteToControlCenter("robot", params);
   }
   const auto endChrono = std::chrono::steady_clock::now();
   const auto durationChrono =
@@ -199,7 +199,7 @@ void Executor::newSensorData(QVector<double> params)
   qInfo() << QString("Start send new sensor data. Parameters: %1").arg(dataString);
   const auto start = std::chrono::steady_clock::now();
 
-  emit signalWriteToControlCenter(params);
+  emit signalWriteToControlCenter("object",params);
 
   qDebug() << "finish: " << std::chrono::duration_cast<std::chrono::microseconds>(
     std::chrono::steady_clock::now() - start).count() / 1000.;
@@ -254,7 +254,7 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
                     dataString.push_back(QString("%1 ").arg(i));
                 }
                 qInfo() << QString("Start sending CVS data. Parameters: %1").arg(dataString);
-                emit sendControlCenterRobotPosition(object);
+                emit signalWriteToControlCenter("object", object);
                 wasSend = true;
             }
         }

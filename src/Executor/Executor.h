@@ -49,7 +49,7 @@ signals:
      * \brief               Signal for sending moving message to robot.
      * \param[in] params    Parametrs for moving.
      */
-    void signalWriteToControlCenter(QVector<double> params);
+    void signalWriteToControlCenter(QString token, QVector<double> params);
 
     /**
      * \brief Signal for make connection to robot and RCA.

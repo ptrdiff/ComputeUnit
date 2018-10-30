@@ -115,7 +115,7 @@ void RCAConnector::slotToConnect()
     }
 }
 
-void RCAConnector::slotWriteToServer(QVector<double> data)
+void RCAConnector::slotWriteToServer(QString token, QVector<double> data)
 {
     QString dataString;
     for (auto &i : data)
@@ -126,7 +126,16 @@ void RCAConnector::slotWriteToServer(QVector<double> data)
     const auto startChrono = std::chrono::steady_clock::now();
 
     QTextStream dataStream(_socket.get());
-    dataStream << R"("data" : ")";
+    if (token == "object")
+    {
+        dataStream << QString(R"("%1" : ")").arg(
+                QString(token + QString::number(static_cast<int>(data.at(0)))));
+        data.pop_front();
+    }
+    else
+    {
+        dataStream << QString(R"("%1" : ")").arg(token);
+    }
     for (auto &i : data)
     {
         dataStream << i << ' ';

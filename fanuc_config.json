@@ -21,9 +21,9 @@
     },
     "ComputerVisionSystem": {
         "ArucoSqureDimension": "0.64",
-        "CountOfMarkers": "64",
+        "CountOfMarkers": "9",
         "MarkerSize": "4",
-        "CameraIndex": "0",
+        "CameraIndex": "1",
         "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
     },
     "MathModule": {

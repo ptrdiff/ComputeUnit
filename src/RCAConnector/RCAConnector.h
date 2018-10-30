@@ -30,7 +30,7 @@ public slots:
   void slotToDisconnected();
   void slotToReadyRead();
 
-  void slotWriteToServer(QVector<double>);
+  void slotWriteToServer(QString token, QVector<double>);
 
 protected:
 
