@@ -1,13 +1,13 @@
 {
     "RCAConnector": {
-        "IPAdress": "192.168.1.105",
+        "IPAdress": "192.168.1.42",
         "Port": "9099",
         "WelcomeCommand": "f"
     },
     "RobotConnector": {
         "IPAdress": "172.27.221.60",
         "Port": "59002",
-        "WelcomeCommand": "2 2 3 7 4 1 0",
+        "WelcomeCommand": "2 2 3 7 4 1 1500 3",
         "DataBlock": "6"
     },
     "SensorAdapter": {
@@ -20,7 +20,7 @@
         ]
     },
     "ComputerVisionSystem": {
-        "ArucoSqureDimension": "0.64",
+        "ArucoSqureDimension": "0.057",
         "CountOfMarkers": "9",
         "MarkerSize": "4",
         "CameraIndex": "1",

@@ -13,9 +13,9 @@ nikita::FanucModel::FanucModel()
           {130, PI / 2, -90, 0},
           {-190, 0, 0, 0}
       }),
-      _toCamera(4, 4, CV_64F, new double[16]{0, -1, 0, -43, 1, 0, 0, -90, 0, 0, 1, 130, 0, 0, 0, 1}),
+      _toCamera(4, 4, CV_64F, new double[16]{-1, 0, 0, -43, 0, -1, 0, -90, 0, 0, -1, 130, 0, 0, 0, 1}),
       _toSixth(4, 4, CV_64F, new double[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -190, 0, 0, 0, 1}),
-      _forMovingToCamera(4, 4, CV_64F, new double[16]{0, -1, 0, -43, 1, 0, 0, 90, 0, 0, 1, 130, 0, 0, 0, 1})
+      _forMovingToCamera(4, 4, CV_64F, new double[16]{-1, 0, 0, -43, 0, -1, 0, 90, 0, 0, -1, 130, 0, 0, 0, 1})
 {
 }
 

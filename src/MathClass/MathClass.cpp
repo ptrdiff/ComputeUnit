@@ -47,6 +47,9 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
             _lastSendPoint[i] = params.at(i);
         }
 
+        // TODO (Danila) remove this line.
+        speed = DEFAULT_SPEED;
+
         params.push_back(speed);
         std::swap(params[6], params[7]);
 
@@ -131,13 +134,13 @@ QVector<QVector<double>> MathModule::sendAfterSensorTransformation(
 
     for (int i = 0; i < 6; ++i)
     {
-        lastPoint[i] = _lastReceivedPoint[i];
+        lastPoint[i] = _lastSendPoint[i];
     }
 
     auto newMarkerPos = transformMarkerPosition(lastPoint, objects);
 
     QVector<QVector<double>> result;
-    for (auto &i : objects)
+    for (auto &i : newMarkerPos)
     {
         QVector<double> object;
         for(auto&j : i)

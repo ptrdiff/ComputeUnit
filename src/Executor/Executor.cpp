@@ -238,34 +238,27 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     const auto start = std::chrono::steady_clock::now();
 
     bool wasSend = false;
-    if (_robotConnector.isNotMoving())
-    {
-        try {
-            const auto objectCameraPosition = _cvs.getMarkerPose();
+    try {
+        const auto objectCameraPosition = _cvs.getMarkerPose();
 
-            const auto objectPositions = _mathModule.sendAfterSensorTransformation(
+        const auto objectPositions = _mathModule.sendAfterSensorTransformation(
                 objectCameraPosition);
 
-            for (auto &object : objectPositions)
-            {
-                dataString.clear();
-                for (auto &i : object)
-                {
-                    dataString.push_back(QString("%1 ").arg(i));
-                }
-                qInfo() << QString("Start sending CVS data. Parameters: %1").arg(dataString);
-                emit signalWriteToControlCenter("object", object);
-                wasSend = true;
-            }
-        }
-        catch (std::exception& exp)
+        for (auto &object : objectPositions)
         {
-            qCritical() << QString("Can't access camera");
+            dataString.clear();
+            for (auto &i : object)
+            {
+                dataString.push_back(QString("%1 ").arg(i));
+            }
+            qInfo() << QString("Start sending CVS data. Parameters: %1").arg(dataString);
+            emit signalWriteToControlCenter("object", object);
+            wasSend = true;
         }
     }
-    else
+    catch (std::exception& exp)
     {
-        qCritical() << QString("Not allowed use CVS during moving");
+        qCritical() << QString("Can't access camera");
     }
 
     if (!wasSend) 
