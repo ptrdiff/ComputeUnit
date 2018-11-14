@@ -38,7 +38,7 @@ std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
     {
         for(std::size_t i = 0; i < markerIds.size(); ++i)
         {
-            std::array<double,7> markerInfo{static_cast<double>(i),
+            std::array<double,7> markerInfo{static_cast<double>(markerIds[i]),
                                             translationVectors[i][0],
                                             translationVectors[i][1],
                                             translationVectors[i][2],

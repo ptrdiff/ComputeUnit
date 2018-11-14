@@ -94,7 +94,7 @@ QVector<double> MathModule::sendToSensorTransformation(QVector<double> params)
 }
 
 cv::Mat createTransformationMatrix(const cv::Vec3d& rotationVector,
-    const cv::Vec3d& translationVector) {
+                                   const cv::Vec3d& translationVector) {
     cv::Mat rotationMatrix;
     cv::Rodrigues(rotationVector, rotationMatrix);
     cv::Mat transformationMatrix = cv::Mat::zeros(4, 4, cv::DataType<double>::type);
@@ -105,24 +105,30 @@ cv::Mat createTransformationMatrix(const cv::Vec3d& rotationVector,
 }
 
 std::array<double, 6> calculateMarkerPose(const cv::Mat &transformationMatrix,
-    const std::array<double, 6> cartesianCoords)
+                                          const std::array<double, 6> jointCoords)
 {
     nikita::FanucModel _fanuc = nikita::FanucModel();
-    const cv::Mat p6 = nikita::FanucModel::matrixFromCartesianCoords(cartesianCoords);
+    const cv::Mat p6 = _fanuc.fanucForwardTask(jointCoords);
     cv::Mat res = p6 * _fanuc.getToCamera() * transformationMatrix * _fanuc.getToSixth();
     return nikita::FanucModel::getCoordsFromMat(res);
 }
 
 QVector<std::array<double, 7>> transformMarkerPosition(
-    const std::array<double, 6> jointAngles, std::vector<std::array<double, 7>> objects)
+        const std::array<double, 6> jointCoords, std::vector<std::array<double, 7>> objects)
 {
     QVector<std::array<double, 7>> result;
     for (auto &i : objects)
     {
-        cv::Mat transformMatrix = createTransformationMatrix(cv::Vec3d(i[1], i[2], i[3]),
-            cv::Vec3d(i[4], i[5], i[6]));
-        std::array<double, 6> res = calculateMarkerPose(transformMatrix, jointAngles);
-        result.push_back(std::array<double, 7>{i[0], res[0], res[1], res[2], res[3], res[4], res[5]});
+        cv::Mat transformMatrix = createTransformationMatrix(cv::Vec3d(i[4], i[5], i[6]),
+                                                             cv::Vec3d(i[1], i[2], i[3]));
+        std::array<double, 6> res = calculateMarkerPose(transformMatrix, jointCoords);
+        result.push_back(std::array<double, 7>{i[0],
+                                               res[0],
+                                               res[1],
+                                               res[2],
+                                               res[3]*180.0/nikita::PI,
+                                               res[4]*180.0/nikita::PI,
+                                               res[5]*180.0/nikita::PI});
     }
     return result;
 }
@@ -130,14 +136,14 @@ QVector<std::array<double, 7>> transformMarkerPosition(
 QVector<QVector<double>> MathModule::sendAfterSensorTransformation(
     std::vector<std::array<double, 7>> objects)
 {
-    std::array<double, 6> lastPoint;
+    std::array<double, 6> lastJointPoint;
 
     for (int i = 0; i < 6; ++i)
     {
-        lastPoint[i] = _lastSendPoint[i];
+        lastJointPoint[i] = _lastReceivedPoint[i];
     }
 
-    auto newMarkerPos = transformMarkerPosition(lastPoint, objects);
+    auto newMarkerPos = transformMarkerPosition(lastJointPoint, objects);
 
     QVector<QVector<double>> result;
     for (auto &i : newMarkerPos)
@@ -166,8 +172,6 @@ QVector<double> MathModule::shutDownCommand()
     else
     {
         auto command = sendToRobotTransformation(_defaultPosition);
-
-        //command.push_back(-1);
 
         return command;
     }
