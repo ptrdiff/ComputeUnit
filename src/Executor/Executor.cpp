@@ -148,7 +148,11 @@ void Executor::sendControlCenterRobotPosition(QVector<double> params)
 
   if (!params.empty())
   {
-      emit signalWriteToControlCenter("robot", params);
+      emit signalWriteToControlCenter("robot", QVector<double>{params[0],params[1],params[2],
+                                                               params[3],params[4],params[5]});
+      emit signalWriteToControlCenter("fanuc_world", QVector<double>{params[6],params[7],
+                                                                     params[8],params[9],
+                                                                     params[10],params[11]});
   }
   const auto endChrono = std::chrono::steady_clock::now();
   const auto durationChrono =
@@ -237,7 +241,6 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
     qInfo() << QString("Start using CVS. Parameters: %1").arg(dataString);
     const auto start = std::chrono::steady_clock::now();
 
-    bool wasSend = false;
     try {
         const auto objectCameraPosition = _cvs.getMarkerPose();
 
@@ -253,17 +256,11 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
             }
             qInfo() << QString("Start sending CVS data. Parameters: %1").arg(dataString);
             emit signalWriteToControlCenter("object", object);
-            wasSend = true;
         }
     }
     catch (std::exception& exp)
     {
         qCritical() << QString("Can't access camera");
-    }
-
-    if (!wasSend) 
-    {
-        emit sendControlCenterRobotPosition(QVector<double>());
     }
 
     qDebug() << "Finish using CVS: " << std::chrono::duration_cast<std::chrono::microseconds>(

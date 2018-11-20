@@ -142,7 +142,6 @@ void RCAConnector::slotWriteToServer(QString token, QVector<double> data)
     }
     dataStream << "\"|";
     dataStream.flush();
-
     const auto endChrono = std::chrono::steady_clock::now();
     const auto durationChrono =
         std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();

@@ -25,10 +25,11 @@ std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
     std::vector<cv::Vec3d> rotationVectors, translationVectors;
     std::vector<int> markerIds;
     std::vector<std::array<double, 7>> result;
-    if (!_vid.read(frame))
+    if (!_vid.grab())
     {
         throw std::exception();
     }
+    _vid >> frame;
 
     bool foundMarkers = _arucoMarkers.estimateMarkersPose(frame, _camera.cameraMatrix(),
                                                                _camera.distortionCoefficients(),

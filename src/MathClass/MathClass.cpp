@@ -20,6 +20,27 @@ _defaultPosition(curPosition)
 QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
 {
     _lastReceivedPoint = params;
+    nikita::FanucModel fanuc = nikita::FanucModel();
+    std::array<double, 6> jointCoords{};
+    for (size_t i = 0; i < _lastReceivedPoint.size(); ++i)
+    {
+        jointCoords[i] = _lastReceivedPoint[i];
+    }
+    cv::Mat p6 = fanuc.fanucForwardTask(jointCoords);
+    std::array<double, 6> worldCoords = nikita::FanucModel::getCoordsFromMat(p6);
+    QVector<double> qWorldCoords;
+    for (size_t i = 0; i < worldCoords.size(); ++i)
+    {
+        if(i < 3)
+        {
+            qWorldCoords.push_back(worldCoords[i]);
+        }
+        else
+        {
+            qWorldCoords.push_back(worldCoords[i] * 180.0/nikita::PI);
+        }
+    }
+    params.append(qWorldCoords);
     return params;
 }
 

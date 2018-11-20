@@ -19,7 +19,7 @@ nikita::FanucModel::FanucModel()
                                                  0, 0, 0, 1}),
           _toSixth(4, 4, CV_64F, new double[16]{0, 1, 0, 0,
                                                 1, 0, 0, 0,
-                                                0, 0, -1, 190,
+                                                0, 0, -1, 205,
                                                 0, 0, 0, 1}),
           _forMovingToCamera(4, 4, CV_64F, new double[16]{-1, 0, 0, 43,
                                                           0, -1, 0, -90,
