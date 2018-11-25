@@ -29,6 +29,10 @@ std::vector<std::array<double, 7>> timur::CVS::getMarkerPose()
     {
         throw std::exception();
     }
+    for(int i = 0; i < 10; ++i)
+    {
+        _vid.grab();
+    }
     _vid >> frame;
 
     bool foundMarkers = _arucoMarkers.estimateMarkersPose(frame, _camera.cameraMatrix(),
