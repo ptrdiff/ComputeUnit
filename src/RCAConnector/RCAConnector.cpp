@@ -1,6 +1,8 @@
 #include "RCAConnector.h"
 
 #include <chrono>
+#include <sys/types.h> 
+#include <sys/socket.h>
 
 RCAConnector::RCAConnector(std::string serverIP, int port, std::string welcomeCommand,
     QObject *parent) :
@@ -87,9 +89,9 @@ void RCAConnector::slotToReadyRead()
 
 void RCAConnector::slotToDisconnected()
 {
-    qInfo() << QString("Start disconnection.");
-    emit signalNextCommand(ExectorCommand::SHUT_DOWN, QVector<double>());
+    qCritical() << QString("Robot socket error: %1").arg(_socket->errorString());
     _socket->close();
+    emit signalSocketError();
     qDebug() << QString("Complete disconnection.");
 }
 
@@ -108,6 +110,13 @@ void RCAConnector::slotToConnect()
     else
     {
         _socket->write(_welcomeCommand.c_str());
+
+        int maxIdle = 30; /* seconds */
+        int enableKeepAlive = 1;
+        int fd = _socket->socketDescriptor();
+        setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enableKeepAlive, sizeof(enableKeepAlive));
+        setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &maxIdle, sizeof(maxIdle));
+
         const auto endChrono = std::chrono::steady_clock::now();
         const auto durationChrono =
             std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
@@ -140,7 +149,7 @@ void RCAConnector::slotWriteToServer(QString token, QVector<double> data)
     {
         dataStream << i << ' ';
     }
-    dataStream << "\"|";
+    dataStream << "\"| ";
     dataStream.flush();
 
     const auto endChrono = std::chrono::steady_clock::now();

@@ -1,6 +1,6 @@
 {
     "RCAConnector": {
-        "IPAdress": "192.168.1.105",
+        "IPAdress": "192.168.1.42",
         "Port": "9099",
         "WelcomeCommand": "t"
     },
@@ -8,7 +8,7 @@
         "IPAdress": "192.168.1.100",
         "Port": "9093",
         "WelcomeCommand": "",
-        "DataBlock": "3"
+        "DataBlock": "7"
     },
     "SensorAdapter": {
         "SensorCount": 0,
@@ -28,6 +28,6 @@
     },
     "MathModule": {
         "IsCard": "1",
-        "StartPostion":  [-1105, -1076]
+        "StartPostion":  [292, -1032]
     }
 }

@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QString>
 #include <QVector>
+#include <QTimer>
 
 #include "RobotConnector/RobotConnector.h"
 #include "RCAConnector/RCAConnector.h"
@@ -103,6 +104,11 @@ private:
     MathModule&                                                            _mathModule;
 
     /**
+     * \brief Timer for not sleping.
+     */
+    std::unique_ptr<QTimer>                                                _anti_sleep;
+
+    /**
      * \brief Table of comprasion id of command with function for this command and number of it
      *        parametrs.
      */
@@ -143,6 +149,11 @@ private:
      * \param[in] params    Just for template.
      */
     void getComputerVisionSystemData(QVector<double> params);
+
+    /**
+     * \brief Function for making something and show that this thread is not slepping.
+     */
+    void ping();
 };
 
 //todo complit doxygen

@@ -4,6 +4,7 @@
 
 #include <QDebug>
 #include <QCoreApplication>
+#include <QTimer>
 
 Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotConnector,
   SensorAdapter &sensorAdapter, timur::CVS& cvs, MathModule& mathModule, QObject *parent) try :
@@ -13,6 +14,7 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
   _sensorAdapter(sensorAdapter),
   _cvs(cvs),
   _mathModule(mathModule),
+  _anti_sleep(std::make_unique<QTimer>(this)),
   _commandTable({
                  {ExectorCommand::SHUT_DOWN,        {&Executor::shutDownComputeUnit,           -1}},
                  {ExectorCommand::SEND_TO_ROBOT,    {&Executor::sendRobotMoveCommand,          -1}},
@@ -48,6 +50,9 @@ Executor::Executor(RCAConnector& controlCenterConnector, RobotConnector& robotCo
     &RobotConnector::slotWriteToServer);
 
   emit signalToConnect();
+
+  connect(_anti_sleep.get(), &QTimer::timeout, this, &Executor::ping);
+  _anti_sleep->start(1000);
 
   const auto endChrono = std::chrono::steady_clock::now();
   const auto durationChrono =
@@ -268,6 +273,20 @@ void Executor::getComputerVisionSystemData(QVector<double> params)
 
     qDebug() << "Finish using CVS: " << std::chrono::duration_cast<std::chrono::microseconds>(
         std::chrono::steady_clock::now() - start).count() / 1000.;
+}
+
+void Executor::ping()
+{
+    QStringList parameters;
+#if defined(WIN32)
+    parameters << "-n" << "1";
+#else
+    parameters << "-c 1";
+#endif
+
+    parameters << "8.8.8.8";
+
+    QProcess::execute("ping", parameters);
 }
 
 //todo update system to use all functions from fanuc server

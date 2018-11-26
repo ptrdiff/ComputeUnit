@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <chrono>
+#include <sys/types.h> 
+#include <sys/socket.h>
 
 RobotConnector::RobotConnector(std::string serverIP, int port, std::string welcomeCommand, 
     int inputBlock, QObject *parent) :
@@ -44,6 +46,12 @@ void RobotConnector::slotToConnect()
     {
         _socket->write(_welcomeCommand.c_str());
 
+        int maxIdle = 30; /* seconds */
+        int enableKeepAlive = 1;
+        int fd = _socket->socketDescriptor();
+        setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enableKeepAlive, sizeof(enableKeepAlive));
+        setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &maxIdle, sizeof(maxIdle));
+
         const auto endChrono = std::chrono::steady_clock::now();
         const auto durationChrono =
             std::chrono::duration_cast<std::chrono::microseconds>(endChrono - startChrono).count();
@@ -51,14 +59,14 @@ void RobotConnector::slotToConnect()
     }
     else
     {
-        qCritical() << QString("Fanuc Error: %1").arg(_socket->errorString());
+        qCritical() << QString("Robot Error: %1").arg(_socket->errorString());
         emit signalSocketError();
     }
 }
 
 void RobotConnector::slotToDisconnected()
 {
-    qInfo() << QString("Start disconnection.");
+    qCritical() << QString("Robot socket error: %1").arg(_socket->errorString());
     _socket->close();
     emit signalSocketError();
     qDebug() << QString("Complete disconnection");

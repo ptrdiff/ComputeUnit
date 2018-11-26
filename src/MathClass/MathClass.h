@@ -104,9 +104,19 @@ protected:
     QVector<double>     _defaultPosition;
 
     /**
+     * \brief Array describing current position of robot in world cordinate system.(only for card)
+     */
+    QVector<double>     _cur_world_position;
+
+    /**
      * \brief Class for transforming commands for card.
      */
     CardModel           _cardModel;
+
+    /*
+     * \brief Direction of moving.
+     */
+    int spd_coef = 1;
 };
 
 #endif // MATH_MODULE_H

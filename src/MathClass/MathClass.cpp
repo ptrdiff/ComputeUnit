@@ -1,8 +1,10 @@
 #include "MathClass.h"
 
 #include <array>
+#include <math.h>
 
 #include <opencv2/calib3d.hpp>
+#include <QDebug>
 
 #include "CardModel/CardModel.h"
 
@@ -12,15 +14,79 @@ _isCard(forCard),
 _wasFirstPointSend(false),
 _lastSendPoint(curPosition),
 _lastReceivedPoint({ 0, 0, 0, 0, -90, 0 }),
-_defaultPosition(curPosition)
+_defaultPosition(curPosition),
+_cur_world_position(curPosition)
 {
-    
+    if(_isCard)
+    {
+        _lastReceivedPoint = { 0,0,0,0,0,0 };
+    }
 }
 
 QVector<double> MathModule::sendToRCATransformation(QVector<double> params)
 {
-    _lastReceivedPoint = params;
-    return params;
+    if(_isCard)
+    {
+        qInfo() << QString("start transform cordinates. %1 coords").arg(params.size());
+        if(params.size() == 7)
+        {
+            if(abs(params.at(6)) != 0)
+            {
+                _lastReceivedPoint = params;
+                for(int i=0;i<6;i+=2)
+                {
+                    _lastReceivedPoint[i] = 0;
+                }
+                return _cur_world_position;
+            }
+
+            QVector<double> distance_differ;
+            for(int i=0;i<6;i+=2)
+            {
+                distance_differ.push_back(params.at(i) - _lastReceivedPoint.at(i));
+            }
+            if(abs(params.at(1) - params.at(3))<3 && abs(params.at(3) - params.at(5))<3)
+            {
+                const auto mid_angel = (params.at(1) + params.at(3) + params.at(5)) / 3;
+
+                double mid_distance = 0.;
+                for(const auto& elem: distance_differ)
+                {
+                    mid_distance += elem / distance_differ.size();
+                }
+                {
+                    QString dataString;
+                    for (auto &i : _cur_world_position)
+                    {
+                        dataString.push_back(QString("%1 ").arg(i));
+                    }
+                    qInfo() << QString("before transformation: %1").arg(dataString);
+                }
+
+                _cur_world_position = {_cur_world_position.at(0) - 
+                        cos((mid_angel-175)*acos(-1.)/180)*mid_distance,
+                    _cur_world_position.at(1) -
+                        sin((mid_angel - 175)*acos(-1.) / 180)*mid_distance };
+
+                {
+                    QString dataString;
+                    for (auto &i : _cur_world_position)
+                    {
+                        dataString.push_back(QString("%1 ").arg(i));
+                    }
+                    qInfo() << QString("after transformation: %1").arg(dataString);
+                }
+            }
+            _lastReceivedPoint = params;
+            return _cur_world_position;
+        }
+        return {};
+    }
+    else
+    {
+        _lastReceivedPoint = params;
+        return params;
+    }
 }
 
 QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
@@ -74,9 +140,13 @@ QVector<double> MathModule::sendToRobotTransformation(QVector<double> params)
         }
         if(params.size() >= 2)
         {
-            auto coords = _cardModel.secondTypeOfMoving(_lastSendPoint[0], _lastSendPoint[1], 
+            auto coords = _cardModel.secondTypeOfMoving(_cur_world_position[0], _cur_world_position[1],
                 params[0], params[1]);
             _lastSendPoint = params;
+            if (coords.at(1) > 0)
+                spd_coef = -1;
+            else
+                spd_coef = 1;
             QVector<double> message;
             for (auto& coord : coords)
             {

@@ -3,7 +3,7 @@ import socket
 
 sock = socket.socket()
 
-sock.bind(('', 59002))
+sock.bind(('', 9093))
 sock.listen(1)
 
 while True:
@@ -20,6 +20,7 @@ while True:
 
         ls = data.split()
 
+        """
         while ls:
             if ls[0] == '1':
                 if len(ls) < 9:
@@ -43,3 +44,4 @@ while True:
                 ls = ls[7:]
             else:
                 ls = []
+        """
