@@ -1,6 +1,6 @@
 {
     "RCAConnector": {
-        "IPAdress": "192.168.1.42",
+        "IPAdress": "192.168.1.115",
         "Port": "9099",
         "WelcomeCommand": "f"
     },
@@ -24,7 +24,7 @@
         "CountOfMarkers": "9",
         "MarkerSize": "4",
         "CameraIndex": "1",
-        "CalibrationFileName": "../src/ComputerVisionSystem/CamCalibStable.txt"
+        "CalibrationFileName": "../src/ComputerVisionSystem/CamCalib03121617.txt"
     },
     "MathModule": {
         "IsCard": "0",
